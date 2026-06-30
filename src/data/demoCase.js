@@ -14,12 +14,9 @@ export const demoCase = {
     { id: 3, meaning: '想听那首老歌', confidence: 0.5 },
   ],
   calibration: {
-    threshold: 0.75,
-    signals: [
-      { id: 1, name: '眨眼频率', active: true },
-      { id: 2, name: '手势幅度', active: true },
-      { id: 3, name: '头部转向', active: false },
-    ],
+    feedbackMethod: 'blink',
+    answers: { 1: 'yes', 2: 'yes', 3: 'yes' },
+    result: 'pass',
   },
   questionChain: [
     {
