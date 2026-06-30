@@ -48,7 +48,7 @@ function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container page-enter" key={currentPage}>
       {pageComponent}
     </div>
   );
