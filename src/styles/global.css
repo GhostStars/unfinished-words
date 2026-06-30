@@ -114,7 +114,54 @@ body::after {
 
 /* --- Page Transition --- */
 .page-enter {
-  animation: pageEnter 0.35s ease-out both;
+  animation: pageEnter 0.3s ease-out both;
+  will-change: opacity, transform;
+}
+
+/* --- Touch Optimization --- */
+button, textarea, input, select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --- Mobile Overrides --- */
+@media (max-width: 480px) {
+  .brand-h1 {
+    font-size: 1.5rem;
+  }
+
+  .brand-h2 {
+    font-size: 1.25rem;
+  }
+
+  .brand-h3 {
+    font-size: 1.1rem;
+  }
+
+  .brand-body {
+    font-size: 1rem;
+  }
+
+  .brand-card {
+    padding: 24px;
+  }
+
+  body::after {
+    box-shadow:
+      42px 28px 0 0.5px var(--star-color),
+      95px 55px 0 0.5px var(--star-color-dim),
+      160px 18px 0 0.8px var(--star-color),
+      230px 72px 0 0.5px var(--star-color-dim),
+      310px 35px 0 0.6px var(--star-color),
+      45px 120px 0 0.5px var(--star-color),
+      120px 145px 0 0.7px var(--star-color),
+      200px 110px 0 0.5px var(--star-color-dim),
+      280px 155px 0 0.6px var(--star-color),
+      70px 200px 0 0.4px var(--star-color),
+      150px 230px 0 0.5px var(--star-color-dim),
+      250px 210px 0 0.5px var(--star-color);
+    animation: twinkle 4s ease-in-out infinite alternate;
+  }
 }
 
 /* --- Typography Classes --- */

@@ -19,7 +19,7 @@ function LifeClues({ navigate }) {
       <div>
         <h2 className="brand-h2">生命线索</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
-          这些背景信息有助于更准确地理解患者当下的表达
+          了解这些背景，也许能帮你更贴近TA想表达的
         </p>
       </div>
 

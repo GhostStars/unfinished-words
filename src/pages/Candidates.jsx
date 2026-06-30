@@ -64,7 +64,7 @@ function Candidates({ navigate }) {
       <div>
         <h2 className="brand-h2">可能含义</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
-          基于线索与生命背景，以下是对患者表达的可能解读
+          结合你提供的线索，这是TA可能想表达的意思
         </p>
       </div>
 
@@ -96,7 +96,7 @@ function Candidates({ navigate }) {
                 className="brand-btn-outline"
                 onClick={() => handleEdit(c.id)}
                 style={{
-                  minHeight: '36px',
+                  minHeight: '48px',
                   padding: '0 var(--space-md)',
                   fontSize: 'var(--font-size-sm)',
                   flex: 1,
@@ -108,7 +108,7 @@ function Candidates({ navigate }) {
                 className="brand-btn-outline"
                 onClick={() => handleDismiss(c.id)}
                 style={{
-                  minHeight: '36px',
+                  minHeight: '48px',
                   padding: '0 var(--space-md)',
                   fontSize: 'var(--font-size-sm)',
                   flex: 1,
@@ -120,7 +120,7 @@ function Candidates({ navigate }) {
                 className="brand-btn-danger"
                 onClick={() => handleDelete(c.id)}
                 style={{
-                  minHeight: '36px',
+                  minHeight: '48px',
                   padding: '0 var(--space-md)',
                   fontSize: 'var(--font-size-sm)',
                   flex: 1,

@@ -153,7 +153,7 @@ function ExpressionRecord({ navigate }) {
       <div>
         <h2 className="brand-h2">可能表达记录</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)', color: 'var(--text-tertiary)' }}>
-          基于问题链反馈的综合推断结果
+          根据你们的互动，这是TA可能想表达的
         </p>
       </div>
 
@@ -168,7 +168,7 @@ function ExpressionRecord({ navigate }) {
         }}
       >
         <p className="brand-caption" style={{ color: 'var(--text-tertiary)', fontWeight: 'var(--font-weight-medium)' }}>
-          患者可能想表达：
+          TA可能想表达：
         </p>
         <p
           className="brand-body"

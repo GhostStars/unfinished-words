@@ -65,7 +65,7 @@ function InputClue({ navigate }) {
       <div>
         <h2 className="brand-h2">输入线索</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
-          请描述你观察到的事实，而不是猜测
+          描述你看到的，不用急着下结论
         </p>
       </div>
 
@@ -77,7 +77,7 @@ function InputClue({ navigate }) {
           <textarea
             id="description"
             className="brand-body"
-            placeholder="例如：患者反复眨眼，右手微微抬起指向门口方向"
+            placeholder="例如：反复眨眼，右手微微抬起指向门口"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
@@ -89,7 +89,7 @@ function InputClue({ navigate }) {
               background: 'rgba(255, 255, 255, 0.6)',
               resize: 'vertical',
               fontFamily: 'inherit',
-              fontSize: 'inherit',
+              fontSize: '16px',
               lineHeight: 'inherit',
               color: 'inherit',
             }}
@@ -103,7 +103,7 @@ function InputClue({ navigate }) {
           <textarea
             id="context"
             className="brand-body"
-            placeholder="例如：探访时间临近结束，患者看到家属准备离开"
+            placeholder="例如：探访快结束了，看到家人准备离开"
             value={context}
             onChange={(e) => setContext(e.target.value)}
             rows={3}
@@ -115,7 +115,7 @@ function InputClue({ navigate }) {
               background: 'rgba(255, 255, 255, 0.6)',
               resize: 'vertical',
               fontFamily: 'inherit',
-              fontSize: 'inherit',
+              fontSize: '16px',
               lineHeight: 'inherit',
               color: 'inherit',
             }}

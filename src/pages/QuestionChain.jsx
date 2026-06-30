@@ -268,7 +268,7 @@ function QuestionChain({ navigate }) {
           }}
         >
           <p className="brand-caption" style={{ color: 'var(--warning)' }}>
-            如果患者反应变弱，可以先暂停
+            如果反应变弱，可以先暂停
           </p>
         </div>
       )}
@@ -292,6 +292,7 @@ function QuestionChain({ navigate }) {
             opacity: fadeIn ? 1 : 0,
             transform: fadeIn ? 'translateY(0)' : 'translateY(8px)',
             transition: 'opacity 0.2s ease, transform 0.2s ease',
+            willChange: 'opacity, transform',
           }}
         >
           <p
@@ -358,7 +359,7 @@ function QuestionChain({ navigate }) {
           onClick={() => handleFeedback('pause')}
           style={{
             width: '100%',
-            minHeight: '44px',
+            minHeight: '48px',
             fontSize: 'var(--font-size-sm)',
           }}
         >

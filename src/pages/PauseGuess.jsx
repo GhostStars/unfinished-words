@@ -56,7 +56,7 @@ function PauseGuess({ navigate }) {
         )}
 
         <button
-          className="brand-btn-outline"
+          className={hasRecord ? 'brand-btn-outline' : 'brand-btn-primary'}
           onClick={handleContinueLater}
           style={{ width: '100%' }}
         >

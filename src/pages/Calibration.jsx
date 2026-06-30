@@ -111,7 +111,7 @@ function Calibration({ navigate }) {
       <div>
         <h2 className="brand-h2">确认患者的反馈方式</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
-          选择一种患者能使用的反馈信号，然后用 3 个简单问题确认是否稳定
+          选择一种TA能使用的反馈信号，再用 3 个简单问题确认是否稳定
         </p>
       </div>
 
@@ -131,7 +131,7 @@ function Calibration({ navigate }) {
             border: '1px solid var(--border-medium)',
             background: 'rgba(255, 255, 255, 0.6)',
             fontFamily: 'inherit',
-            fontSize: 'var(--font-size-sm)',
+            fontSize: '16px',
             color: feedbackMethod ? 'var(--text-primary)' : 'var(--text-tertiary)',
             appearance: 'none',
             WebkitAppearance: 'none',
@@ -157,7 +157,7 @@ function Calibration({ navigate }) {
       {feedbackMethod && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <p className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-            请用选定的方式向患者依次提问，观察反馈后点选对应按钮
+            请用选定的方式依次提问，观察反馈后点选对应按钮
           </p>
 
           {CALIBRATION_QUESTIONS.map((q, index) => {
@@ -218,7 +218,7 @@ function Calibration({ navigate }) {
                       disabled={isDisabled}
                       style={{
                         flex: 1,
-                        minHeight: '40px',
+                        minHeight: '48px',
                         borderRadius: 'var(--radius-sm)',
                         border: answered === btn.key
                           ? `1.5px solid ${btn.color}`
