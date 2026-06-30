@@ -128,11 +128,47 @@ function QuestionChain({ navigate }) {
 
     // 特殊跳转目标
     if (nextId === 'expressionRecord') {
-      saveProgress({
-        currentQuestionId,
-        roundCount: newRound,
-        consecutiveUnknown: newConsecutiveUnknown,
+      const state = getState() || {};
+      const candidates = state?.candidates || [];
+      const relatedCandidateId = question.relatedCandidate;
+      const candidate = candidates.find((c) => c.id === relatedCandidateId);
+
+      // 计算置信等级
+      const total = newLog.length;
+      const yesCount = newLog.filter((f) => f.answer === 'yes').length;
+      const unknownCount = newLog.filter((f) => f.answer === 'unknown').length;
+      const confidence = candidate?.confidence || 0.5;
+
+      let confidenceLevel = '中等';
+      if (yesCount / total >= 0.7 && confidence >= 0.6) {
+        confidenceLevel = '较高';
+      } else if (yesCount / total >= 0.5 && confidence >= 0.4) {
+        confidenceLevel = '中等';
+      } else if (yesCount > unknownCount) {
+        confidenceLevel = '较低';
+      } else {
+        confidenceLevel = '不可靠';
+      }
+
+      const expressionResult = {
+        expression: candidate?.meaning || '无法确定具体表达',
+        candidateId: relatedCandidateId,
+        confidenceLevel,
+        confidence,
         feedbackLog: newLog,
+        reachedAt: new Date().toISOString(),
+      };
+
+      setState({
+        ...state,
+        questionChainProgress: {
+          ...(state.questionChainProgress || {}),
+          currentQuestionId,
+          roundCount: newRound,
+          consecutiveUnknown: newConsecutiveUnknown,
+          feedbackLog: newLog,
+        },
+        expressionResult,
       });
       navigate('expressionRecord');
       return;

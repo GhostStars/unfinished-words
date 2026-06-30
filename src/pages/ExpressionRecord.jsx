@@ -1,5 +1,343 @@
-function ExpressionRecord() {
-  return <div>表达记录</div>;
+import { useState, useEffect } from 'react';
+import { getState, setState } from '../utils/storage.js';
+
+function ExpressionRecord({ navigate }) {
+  const [record, setRecord] = useState(null);
+  const [inputClue, setInputClue] = useState(null);
+  const [lifeClues, setLifeClues] = useState([]);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const state = getState() || {};
+    setRecord(state?.expressionResult || null);
+    setInputClue(state?.inputClue || null);
+    setLifeClues(state?.lifeClues || []);
+  }, []);
+
+  const getConfidenceColor = (level) => {
+    switch (level) {
+      case '较高':
+        return 'var(--success)';
+      case '中等':
+        return 'var(--info)';
+      case '较低':
+        return 'var(--warning)';
+      case '不可靠':
+        return 'var(--error)';
+      default:
+        return 'var(--text-tertiary)';
+    }
+  };
+
+  const getConfidenceBg = (level) => {
+    switch (level) {
+      case '较高':
+        return 'var(--success-bg)';
+      case '中等':
+        return 'var(--info-bg)';
+      case '较低':
+        return 'var(--warning-bg)';
+      case '不可靠':
+        return 'var(--error-bg)';
+      default:
+        return 'rgba(61, 61, 61, 0.06)';
+    }
+  };
+
+  const getAnswerLabel = (answer) => {
+    if (answer === 'yes') return '是';
+    if (answer === 'no') return '不是';
+    if (answer === 'unknown') return '不知道';
+    if (answer === 'pause') return '暂停';
+    return answer;
+  };
+
+  const getAnswerColor = (answer) => {
+    if (answer === 'yes') return 'var(--success)';
+    if (answer === 'no') return 'var(--error)';
+    return 'var(--warning)';
+  };
+
+  const buildRecordText = () => {
+    if (!record) return '';
+    const lines = [];
+    lines.push('【可能表达记录】');
+    lines.push(`患者可能想表达：${record.expression}`);
+    lines.push('');
+    if (inputClue?.description) {
+      lines.push('【原始线索】');
+      lines.push(inputClue.description);
+      if (inputClue.context) {
+        lines.push(`情境：${inputClue.context}`);
+      }
+      lines.push('');
+    }
+    if (lifeClues.length > 0) {
+      lines.push('【生命线索】');
+      lifeClues.forEach((lc) => lines.push(`- ${lc.content}`));
+      lines.push('');
+    }
+    lines.push('【理解路径】');
+    record.feedbackLog.forEach((log, idx) => {
+      lines.push(`${idx + 1}. ${log.questionText} → ${getAnswerLabel(log.answer)}`);
+    });
+    lines.push('');
+    lines.push(`【置信等级】${record.confidenceLevel}`);
+    lines.push('');
+    lines.push('【边界说明】本记录基于观察与反馈推理，仅供参考，不构成医疗、法律或遗嘱效力。');
+    return lines.join('\n');
+  };
+
+  const handleCopy = async () => {
+    const text = buildRecordText();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleContinue = () => {
+    // 清除本轮表达结果，保留 inputClue / lifeClues 等基础数据
+    const state = getState() || {};
+    const next = { ...state };
+    delete next.expressionResult;
+    delete next.questionChainProgress;
+    delete next.questionChain;
+    delete next.calibration;
+    delete next.candidates;
+    setState(next);
+    navigate('inputClue');
+  };
+
+  const handleGoHome = () => {
+    navigate('home');
+  };
+
+  if (!record) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+        <h2 className="brand-h2">可能表达记录</h2>
+        <div
+          className="brand-card"
+          style={{ textAlign: 'center', padding: 'var(--space-xl) var(--space-md)' }}
+        >
+          <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
+            暂无表达记录，请先完成问题链理解流程
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <button className="brand-btn-primary" onClick={handleGoHome} style={{ width: '100%' }}>
+            返回首页
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+      {/* 标题 */}
+      <div>
+        <h2 className="brand-h2">可能表达记录</h2>
+        <p className="brand-caption" style={{ marginTop: 'var(--space-xs)', color: 'var(--text-tertiary)' }}>
+          基于问题链反馈的综合推断结果
+        </p>
+      </div>
+
+      {/* 可能表达 */}
+      <div
+        className="brand-card"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-md)',
+          border: `1.5px solid ${getConfidenceColor(record.confidenceLevel)}`,
+        }}
+      >
+        <p className="brand-caption" style={{ color: 'var(--text-tertiary)', fontWeight: 'var(--font-weight-medium)' }}>
+          患者可能想表达：
+        </p>
+        <p
+          className="brand-body"
+          style={{
+            fontSize: 'var(--font-size-md)',
+            fontWeight: 'var(--font-weight-medium)',
+            lineHeight: 'var(--line-height-relaxed)',
+            color: 'var(--text-primary)',
+          }}
+        >
+          {record.expression}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+          <span
+            className="brand-small"
+            style={{
+              display: 'inline-block',
+              padding: '2px 10px',
+              borderRadius: 'var(--radius-full)',
+              fontWeight: 'var(--font-weight-medium)',
+              color: getConfidenceColor(record.confidenceLevel),
+              background: getConfidenceBg(record.confidenceLevel),
+            }}
+          >
+            置信：{record.confidenceLevel}
+          </span>
+        </div>
+      </div>
+
+      {/* 原始线索 */}
+      <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+        <h3 className="brand-h3">原始线索</h3>
+        {inputClue?.image && (
+          <img
+            src={inputClue.image}
+            alt="线索图片"
+            style={{
+              width: '100%',
+              maxHeight: '180px',
+              objectFit: 'cover',
+              borderRadius: 'var(--radius-md)',
+            }}
+          />
+        )}
+        {inputClue?.description ? (
+          <p className="brand-body" style={{ color: 'var(--text-secondary)' }}>
+            {inputClue.description}
+          </p>
+        ) : (
+          <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
+            暂无描述
+          </p>
+        )}
+        {inputClue?.context && (
+          <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
+            情境：{inputClue.context}
+          </p>
+        )}
+      </div>
+
+      {/* 生命线索 */}
+      {lifeClues.length > 0 && (
+        <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <h3 className="brand-h3">生命线索</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+            {lifeClues.map((lc) => (
+              <div
+                key={lc.id}
+                style={{
+                  padding: 'var(--space-sm) var(--space-md)',
+                  background: 'rgba(255, 255, 255, 0.5)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              >
+                <p className="brand-body" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                  {lc.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 理解路径表格 */}
+      <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+        <h3 className="brand-h3">理解路径</h3>
+        {record.feedbackLog.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+            {record.feedbackLog.map((log, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-sm)',
+                  padding: 'var(--space-sm) var(--space-md)',
+                  background: 'rgba(255, 255, 255, 0.5)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              >
+                <span
+                  className="brand-small"
+                  style={{ color: 'var(--text-tertiary)', flexShrink: 0, minWidth: '44px' }}
+                >
+                  第{idx + 1}题
+                </span>
+                <span className="brand-caption" style={{ flex: 1, color: 'var(--text-secondary)' }}>
+                  {log.questionText}
+                </span>
+                <span
+                  className="brand-small"
+                  style={{
+                    fontWeight: 'var(--font-weight-medium)',
+                    color: getAnswerColor(log.answer),
+                    flexShrink: 0,
+                  }}
+                >
+                  {getAnswerLabel(log.answer)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
+            暂无反馈记录
+          </p>
+        )}
+      </div>
+
+      {/* 边界说明 */}
+      <p
+        className="brand-small"
+        style={{
+          textAlign: 'center',
+          color: 'var(--text-tertiary)',
+          padding: 'var(--space-sm) var(--space-md)',
+          background: 'rgba(255, 255, 255, 0.5)',
+          borderRadius: 'var(--radius-md)',
+        }}
+      >
+        本记录基于观察与反馈推理，仅供参考，不构成医疗、法律或遗嘱效力
+      </p>
+
+      {/* 按钮区 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+        <button
+          className="brand-btn-primary"
+          onClick={handleCopy}
+          style={{ width: '100%' }}
+        >
+          {copied ? '已复制到剪贴板' : '复制记录'}
+        </button>
+        <button
+          className="brand-btn-outline"
+          onClick={handleContinue}
+          style={{ width: '100%' }}
+        >
+          继续尝试
+        </button>
+        <button
+          className="brand-btn-outline"
+          onClick={handleGoHome}
+          style={{ width: '100%' }}
+        >
+          返回首页
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default ExpressionRecord;
