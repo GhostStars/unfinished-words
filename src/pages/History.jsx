@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSessions, deleteSession, setCurrentSessionId } from '../utils/storage.js';
+import { getSessions, deleteSession, setCurrentSessionId, getState, setState } from '../utils/storage.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 const statusConfig = {
@@ -95,6 +95,14 @@ function History({ navigate, goBack }) {
 
   const handleResume = (session) => {
     setCurrentSessionId(session.id);
+    const state = getState() || {};
+    setState({
+      ...state,
+      calibration: {},
+      questionChainProgress: {},
+      questionChain: [],
+      expressionResult: undefined,
+    });
     navigate('calibration');
   };
 
