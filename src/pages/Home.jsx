@@ -1,3 +1,5 @@
+import heroImg from '../assets/hero.png';
+
 function Home({ navigate }) {
   return (
     <div
@@ -41,7 +43,7 @@ function Home({ navigate }) {
       </p>
 
       <img
-        src="/hero-illustration.jpg"
+        src={heroImg}
         alt="一位家人在温暖的灯光下陪伴侧卧的亲人，安静而温暖"
         style={{
           width: '100%',
