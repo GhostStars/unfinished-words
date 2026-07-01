@@ -18,6 +18,24 @@ const FEEDBACK_OPTIONS = [
   },
 ];
 
+const FEEDBACK_METHOD_MAP = {
+  blink: {
+    yes: '眨眼一次',
+    no: '眨眼两次',
+    unknown: '无明显反应',
+  },
+  hand: {
+    yes: '握一次手',
+    no: '握两次手',
+    unknown: '无动作',
+  },
+  nod: {
+    yes: '头偏左',
+    no: '头偏右',
+    unknown: '无反应',
+  },
+};
+
 const CALIBRATION_QUESTIONS = [
   { id: 1, text: '你能听到我说话吗？', expected: 'yes' },
   { id: 2, text: '我是你的家人，对吗？', expected: 'yes' },
@@ -55,7 +73,12 @@ function Calibration({ navigate, goBack }) {
     setFeedbackMethod(value);
     setResult(null);
     setAnswers({});
-    saveCalibrationState({ feedbackMethod: value, answers: {}, result: null });
+    saveCalibrationState({
+      feedbackMethod: value,
+      feedbackMethodMap: FEEDBACK_METHOD_MAP[value],
+      answers: {},
+      result: null,
+    });
   };
 
   const handleAnswer = (questionId, answer) => {
@@ -99,6 +122,17 @@ function Calibration({ navigate, goBack }) {
     const state = getState() || {};
     if (!state.questionChain || state.questionChain.length === 0) {
       setState({ ...state, questionChain: demoCase.questionChain });
+    }
+    // 确保 feedbackMethodMap 存在
+    const cal = state.calibration || {};
+    if (!cal.feedbackMethodMap && cal.feedbackMethod) {
+      const map = FEEDBACK_METHOD_MAP[cal.feedbackMethod];
+      if (map) {
+        setState({
+          ...state,
+          calibration: { ...cal, feedbackMethodMap: map },
+        });
+      }
     }
     if (result === 'pass') {
       navigate('questionChain');

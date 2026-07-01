@@ -2,17 +2,28 @@ import { useState, useEffect } from 'react';
 import { getState, setState, archiveCurrentSession, createSession } from '../utils/storage.js';
 import PageHeader from '../components/PageHeader.jsx';
 
+const DEFAULT_FEEDBACK_MAP = {
+  yes: '眨眼一次',
+  no: '眨眼两次',
+  unknown: '无明显反应',
+};
+
 function ExpressionRecord({ navigate, goBack }) {
   const [record, setRecord] = useState(null);
   const [inputClue, setInputClue] = useState(null);
   const [lifeClues, setLifeClues] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [feedbackMethodMap, setFeedbackMethodMap] = useState(null);
 
   useEffect(() => {
     const state = getState() || {};
     setRecord(state?.expressionResult || null);
     setInputClue(state?.inputClue || null);
     setLifeClues(state?.lifeClues || []);
+    const cal = state?.calibration;
+    if (cal?.feedbackMethodMap) {
+      setFeedbackMethodMap(cal.feedbackMethodMap);
+    }
   }, []);
 
   const getConfidenceColor = (level) => {
@@ -43,6 +54,11 @@ function ExpressionRecord({ navigate, goBack }) {
       default:
         return 'rgba(61, 61, 61, 0.06)';
     }
+  };
+
+  const getFeedbackLabel = (key) => {
+    const map = feedbackMethodMap || DEFAULT_FEEDBACK_MAP;
+    return map[key] || DEFAULT_FEEDBACK_MAP[key];
   };
 
   const getAnswerLabel = (answer) => {
@@ -192,6 +208,61 @@ function ExpressionRecord({ navigate, goBack }) {
         </div>
       </div>
 
+      {/* 本次反馈约定 */}
+      <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+        <h3 className="brand-h3">本次反馈约定</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span
+              className="brand-small"
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--success)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
+              是：{getFeedbackLabel('yes')}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span
+              className="brand-small"
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--error)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
+              不是：{getFeedbackLabel('no')}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span
+              className="brand-small"
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--warning)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
+              我不知道：{getFeedbackLabel('unknown')}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
         <h3 className="brand-h3">原始线索</h3>
         {inputClue?.image && (
@@ -253,32 +324,39 @@ function ExpressionRecord({ navigate, goBack }) {
                 key={idx}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-sm)',
+                  flexDirection: 'column',
+                  gap: 'var(--space-xs)',
                   padding: 'var(--space-sm) var(--space-md)',
                   background: 'rgba(255, 255, 255, 0.5)',
                   borderRadius: 'var(--radius-md)',
                 }}
               >
-                <span
-                  className="brand-small"
-                  style={{ color: 'var(--text-tertiary)', flexShrink: 0, minWidth: '44px' }}
-                >
-                  第{idx + 1}题
-                </span>
-                <span className="brand-caption" style={{ flex: 1, color: 'var(--text-secondary)' }}>
-                  {log.questionText}
-                </span>
-                <span
-                  className="brand-small"
-                  style={{
-                    fontWeight: 'var(--font-weight-medium)',
-                    color: getAnswerColor(log.answer),
-                    flexShrink: 0,
-                  }}
-                >
-                  {getAnswerLabel(log.answer)}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+                  <span
+                    className="brand-small"
+                    style={{ color: 'var(--text-tertiary)', flexShrink: 0, minWidth: '44px' }}
+                  >
+                    第{idx + 1}题
+                  </span>
+                  <span className="brand-caption" style={{ flex: 1, color: 'var(--text-secondary)' }}>
+                    {log.questionText}
+                  </span>
+                  <span
+                    className="brand-small"
+                    style={{
+                      fontWeight: 'var(--font-weight-medium)',
+                      color: getAnswerColor(log.answer),
+                      flexShrink: 0,
+                    }}
+                  >
+                    {getAnswerLabel(log.answer)}
+                  </span>
+                </div>
+                <div style={{ paddingLeft: '52px' }}>
+                  <span className="brand-small" style={{ color: 'var(--text-tertiary)' }}>
+                    观察到的反馈：{log.observedFeedback || getFeedbackLabel(log.answer)}
+                  </span>
+                </div>
               </div>
             ))}
           </div>

@@ -6,6 +6,12 @@ const MAX_ROUNDS = 8;
 const MAX_CONSECUTIVE_UNKNOWN = 3;
 const WEAK_RESPONSE_HINT_THRESHOLD = 5;
 
+const DEFAULT_FEEDBACK_MAP = {
+  yes: '眨眼一次',
+  no: '眨眼两次',
+  unknown: '无明显反应',
+};
+
 function QuestionChain({ navigate, goBack }) {
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [questionMap, setQuestionMap] = useState({});
@@ -15,6 +21,7 @@ function QuestionChain({ navigate, goBack }) {
   const [feedbackLog, setFeedbackLog] = useState([]);
   const [fadeIn, setFadeIn] = useState(true);
   const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [feedbackMethodMap, setFeedbackMethodMap] = useState(null);
 
   useEffect(() => {
     const state = getState();
@@ -34,6 +41,12 @@ function QuestionChain({ navigate, goBack }) {
     setQuestionMap(map);
     setQuestionOrder(order);
 
+    // 读取反馈方式约定
+    const cal = state?.calibration;
+    if (cal?.feedbackMethodMap) {
+      setFeedbackMethodMap(cal.feedbackMethodMap);
+    }
+
     const progress = state?.questionChainProgress;
     if (progress) {
       setCurrentQuestionId(progress.currentQuestionId);
@@ -44,6 +57,14 @@ function QuestionChain({ navigate, goBack }) {
       setCurrentQuestionId(order[0]);
     }
   }, []);
+
+  const getFeedbackLabel = useCallback(
+    (key) => {
+      const map = feedbackMethodMap || DEFAULT_FEEDBACK_MAP;
+      return map[key] || DEFAULT_FEEDBACK_MAP[key];
+    },
+    [feedbackMethodMap],
+  );
 
   const saveProgress = useCallback(
     (updates) => {
@@ -57,6 +78,16 @@ function QuestionChain({ navigate, goBack }) {
     [],
   );
 
+  // 判断暂停原因
+  const detectPauseReason = (log, nextId, isUserPause) => {
+    if (isUserPause) return 'user_pause';
+    const hasYes = log.some((l) => l.answer === 'yes');
+    const hasNo = log.some((l) => l.answer === 'no');
+    if (hasYes && hasNo) return 'contradiction';
+    if (nextId === 'pauseGuess') return 'contradiction';
+    return 'max_rounds';
+  };
+
   const handleFeedback = (answer) => {
     if (!currentQuestionId) return;
 
@@ -66,20 +97,30 @@ function QuestionChain({ navigate, goBack }) {
     const newRound = roundCount + 1;
     const newLog = [
       ...feedbackLog,
-      { questionId: currentQuestionId, questionText: question.text, answer, type: question.type },
+      {
+        questionId: currentQuestionId,
+        questionText: question.text,
+        answer,
+        type: question.type,
+        observedFeedback: getFeedbackLabel(answer),
+      },
     ];
 
+    // 点击"暂停猜测"
     if (answer === 'pause') {
+      const reason = detectPauseReason(newLog, null, true);
       saveProgress({
         currentQuestionId,
         roundCount: newRound,
         consecutiveUnknown,
         feedbackLog: newLog,
+        pauseReason: reason,
       });
       navigate('pauseGuess');
       return;
     }
 
+    // 处理"我不知道"计数
     let newConsecutiveUnknown = consecutiveUnknown;
     if (answer === 'unknown') {
       newConsecutiveUnknown = consecutiveUnknown + 1;
@@ -87,28 +128,33 @@ function QuestionChain({ navigate, goBack }) {
       newConsecutiveUnknown = 0;
     }
 
+    // 连续 3 次"我不知道" → 暂停
     if (newConsecutiveUnknown >= MAX_CONSECUTIVE_UNKNOWN) {
       saveProgress({
         currentQuestionId,
         roundCount: newRound,
         consecutiveUnknown: newConsecutiveUnknown,
         feedbackLog: newLog,
+        pauseReason: 'consecutive_unknown',
       });
       navigate('pauseGuess');
       return;
     }
 
+    // 超过 8 轮 → 暂停
     if (newRound >= MAX_ROUNDS) {
       saveProgress({
         currentQuestionId,
         roundCount: newRound,
         consecutiveUnknown: newConsecutiveUnknown,
         feedbackLog: newLog,
+        pauseReason: 'max_rounds',
       });
       navigate('pauseGuess');
       return;
     }
 
+    // 根据 onYes/onNo/onUnknown 跳转
     let nextId = null;
     if (answer === 'yes') {
       nextId = question.onYes;
@@ -118,6 +164,7 @@ function QuestionChain({ navigate, goBack }) {
       nextId = question.onUnknown;
     }
 
+    // 特殊跳转目标：表达记录
     if (nextId === 'expressionRecord') {
       const state = getState() || {};
       const candidates = state?.candidates || [];
@@ -164,28 +211,35 @@ function QuestionChain({ navigate, goBack }) {
       return;
     }
 
+    // 跳转到暂停页
     if (nextId === 'pauseGuess') {
+      const reason = detectPauseReason(newLog, nextId, false);
       saveProgress({
         currentQuestionId,
         roundCount: newRound,
         consecutiveUnknown: newConsecutiveUnknown,
         feedbackLog: newLog,
+        pauseReason: reason,
       });
       navigate('pauseGuess');
       return;
     }
 
+    // nextId 为 null 或找不到 → 暂停
     if (!nextId || !questionMap[nextId]) {
+      const reason = detectPauseReason(newLog, null, false);
       saveProgress({
         currentQuestionId,
         roundCount: newRound,
         consecutiveUnknown: newConsecutiveUnknown,
         feedbackLog: newLog,
+        pauseReason: reason,
       });
       navigate('pauseGuess');
       return;
     }
 
+    // 正常切换到下一题
     setFadeIn(false);
     setTimeout(() => {
       setCurrentQuestionId(nextId);
@@ -204,26 +258,29 @@ function QuestionChain({ navigate, goBack }) {
 
   const currentQuestion = currentQuestionId ? questionMap[currentQuestionId] : null;
   const showWeakHint = roundCount + 1 >= WEAK_RESPONSE_HINT_THRESHOLD;
+  const hasCustomMap = !!feedbackMethodMap;
 
   if (!currentQuestion) {
     return null;
   }
 
+  const agreementText = `约定反馈：${getFeedbackLabel('yes')} 表示"是"，${getFeedbackLabel('no')} 表示"不是"；${getFeedbackLabel('unknown')} 记录为"我不知道"。`;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)', minHeight: '70vh' }}>
       <PageHeader title="问题链" onBack={goBack} />
 
+      {/* 进度指示 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
           第 {roundCount + 1} / {MAX_ROUNDS} 题
         </p>
         <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
-          {feedbackLog.length > 0 && feedbackLog.filter((f) => f.answer === 'unknown').length > 0
-            ? `连续"不知道" ${consecutiveUnknown} 次`
-            : ''}
+          {consecutiveUnknown > 0 ? `连续"不知道" ${consecutiveUnknown} 次` : ''}
         </p>
       </div>
 
+      {/* 进度条 */}
       <div
         style={{
           width: '100%',
@@ -244,6 +301,53 @@ function QuestionChain({ navigate, goBack }) {
         />
       </div>
 
+      {/* 反馈约定提示 */}
+      <div
+        className="brand-card"
+        style={{
+          padding: '10px 14px',
+          background: 'var(--info-bg)',
+          border: '1px solid rgba(122, 155, 184, 0.25)',
+        }}
+      >
+        <p
+          className="brand-caption"
+          style={{
+            color: 'var(--info)',
+            fontSize: 'var(--font-size-xs)',
+            lineHeight: 'var(--line-height-normal)',
+            textAlign: 'center',
+          }}
+        >
+          {agreementText}
+        </p>
+      </div>
+
+      {/* 未选择反馈方式时的兜底提示 */}
+      {!hasCustomMap && (
+        <div
+          className="brand-card"
+          style={{
+            padding: '10px 14px',
+            background: 'var(--warning-bg)',
+            border: '1px solid rgba(196, 169, 90, 0.25)',
+          }}
+        >
+          <p
+            className="brand-caption"
+            style={{
+              color: 'var(--warning)',
+              fontSize: 'var(--font-size-xs)',
+              lineHeight: 'var(--line-height-normal)',
+              textAlign: 'center',
+            }}
+          >
+            当前使用默认约定。你也可以返回重新校准反馈方式。
+          </p>
+        </div>
+      )}
+
+      {/* 反应变弱提示 */}
       {showWeakHint && (
         <div
           className="brand-card"
@@ -260,6 +364,7 @@ function QuestionChain({ navigate, goBack }) {
         </div>
       )}
 
+      {/* 问题展示区：大字号居中 */}
       <div
         style={{
           flex: 1,
@@ -294,43 +399,79 @@ function QuestionChain({ navigate, goBack }) {
         </div>
       </div>
 
+      {/* 底部 4 个按钮：双层文案 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+        {/* 是 */}
         <button
           className="brand-btn-primary"
           onClick={() => handleFeedback('yes')}
-          style={{ width: '100%', minHeight: '52px', fontSize: 'var(--font-size-md)' }}
+          style={{
+            width: '100%',
+            minHeight: '56px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2px',
+          }}
         >
-          是
+          <span style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-medium)' }}>
+            是
+          </span>
+          <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.75 }}>
+            {getFeedbackLabel('yes')}
+          </span>
         </button>
 
+        {/* 不是 */}
         <button
           className="brand-btn-outline"
           onClick={() => handleFeedback('no')}
           style={{
             width: '100%',
-            minHeight: '48px',
-            fontSize: 'var(--font-size-md)',
+            minHeight: '52px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2px',
             borderColor: 'var(--error)',
             color: 'var(--error)',
           }}
         >
-          不是
+          <span style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-medium)' }}>
+            不是
+          </span>
+          <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.75 }}>
+            {getFeedbackLabel('no')}
+          </span>
         </button>
 
+        {/* 我不知道 */}
         <button
           className="brand-btn-outline"
           onClick={() => handleFeedback('unknown')}
           style={{
             width: '100%',
-            minHeight: '48px',
-            fontSize: 'var(--font-size-base)',
+            minHeight: '52px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2px',
             borderColor: 'var(--warning)',
             color: 'var(--warning)',
           }}
         >
-          我不知道
+          <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)' }}>
+            我不知道
+          </span>
+          <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.75 }}>
+            {getFeedbackLabel('unknown')}
+          </span>
         </button>
 
+        {/* 暂停猜测 */}
         <button
           className="brand-btn-outline"
           onClick={() => handleFeedback('pause')}
@@ -340,6 +481,7 @@ function QuestionChain({ navigate, goBack }) {
         </button>
       </div>
 
+      {/* 已回答历史记录 */}
       {feedbackLog.length > 0 && (
         <div style={{ marginTop: 'var(--space-sm)' }}>
           <button

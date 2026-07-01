@@ -16,6 +16,11 @@ export const demoCase = {
   ],
   calibration: {
     feedbackMethod: 'blink',
+    feedbackMethodMap: {
+      yes: '眨眼一次',
+      no: '眨眼两次',
+      unknown: '无明显反应',
+    },
     answers: { 1: 'yes', 2: 'yes', 3: 'yes' },
     result: 'pass',
   },
