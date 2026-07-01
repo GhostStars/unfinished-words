@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getState, setState } from '../utils/storage.js';
 import { demoCase } from '../data/demoCase.js';
+import PageHeader from '../components/PageHeader.jsx';
 
-function Candidates({ navigate }) {
+function Candidates({ navigate, goBack }) {
   const [candidates, setCandidates] = useState([]);
 
   useEffect(() => {
@@ -61,6 +62,8 @@ function Candidates({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+      <PageHeader title="候选含义" onBack={goBack} />
+
       <div>
         <h2 className="brand-h2">可能含义</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
@@ -165,7 +168,7 @@ function Candidates({ navigate }) {
           }}
         >
           <p className="brand-caption" style={{ color: 'var(--info)' }}>
-            如果以上都不符合，可以选择"不知道"进入下一步继续探索
+            如果以上都不符合，可以选择&quot;不知道&quot;进入下一步继续探索
           </p>
         </div>
 

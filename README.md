@@ -8,7 +8,9 @@
 
 ## 线上体验
 
-**Demo 地址**：https://unfinished-words.vercel.app
+**Demo 地址**：
+- GitHub Pages（国内推荐）：https://ghoststars.github.io/unfinished-words
+- Vercel（需翻墙）：https://unfinished-words.vercel.app
 
 **仓库地址**：https://github.com/GhostStars/unfinished-words
 
@@ -62,7 +64,9 @@ npm run dev
 
 - [x] 产品说明文档（本文档）
 - [x] 演示视频（线上 Demo 可交互体验）
-- [x] 可访问的线上 Demo：https://unfinished-words.vercel.app
+- [x] 可访问的线上 Demo：
+  - GitHub Pages（国内推荐）：https://ghoststars.github.io/unfinished-words
+  - Vercel（需翻墙）：https://unfinished-words.vercel.app
 - [x] 源代码仓库：https://github.com/GhostStars/unfinished-words
 - [x] 产品截图 5 张（位于 screenshots/ 目录）
 - [x] TRAE 过程截图与 Session ID 记录（见上表）
