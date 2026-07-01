@@ -1,62 +1,51 @@
 import { useState, useEffect } from 'react';
 import { getState, setState } from '../utils/storage.js';
-import { demoCase } from '../data/demoCase.js';
-import PageHeader from '../components/PageHeader.jsx';
 
-const FEEDBACK_OPTIONS = [
+const SIGNALS = [
   {
-    value: 'blink',
-    label: '眨眼一次 = 是，眨眼两次 = 不是，无反应 = 我不知道',
+    key: 'blink',
+    label: '眨眼约定',
+    rules: {
+      yes: '眨眼一次',
+      no: '眨眼两次',
+      unknown: '无明显反应',
+    },
   },
   {
-    value: 'hand',
-    label: '握一次 = 是，握两次 = 不是，不动 = 我不知道',
+    key: 'hand',
+    label: '握手约定',
+    rules: {
+      yes: '轻握一次',
+      no: '轻握两次',
+      unknown: '无握动',
+    },
   },
   {
-    value: 'nod',
-    label: '头偏左 = 是，头偏右 = 不是，不动 = 我不知道',
+    key: 'nod',
+    label: '头部约定',
+    rules: {
+      yes: '头微微偏左',
+      no: '头微微偏右',
+      unknown: '无明显偏转',
+    },
   },
 ];
-
-const FEEDBACK_METHOD_MAP = {
-  blink: {
-    yes: '眨眼一次',
-    no: '眨眼两次',
-    unknown: '无明显反应',
-  },
-  hand: {
-    yes: '握一次手',
-    no: '握两次手',
-    unknown: '无动作',
-  },
-  nod: {
-    yes: '头偏左',
-    no: '头偏右',
-    unknown: '无反应',
-  },
-};
 
 const CALIBRATION_QUESTIONS = [
-  { id: 1, text: '你能听到我说话吗？', expected: 'yes' },
-  { id: 2, text: '我是你的家人，对吗？', expected: 'yes' },
-  { id: 3, text: '我们现在在医院，对吗？', expected: 'yes' },
+  { id: 1, text: '你能听到我说话吗？' },
+  { id: 2, text: '我是你的家人，对吗？' },
+  { id: 3, text: '我们现在在医院，对吗？' },
 ];
 
-function Calibration({ navigate, goBack }) {
-  const [feedbackMethod, setFeedbackMethod] = useState('');
-  const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(null);
+function Calibration({ navigate }) {
+  const [signal, setSignal] = useState('');
+  const [clarity, setClarity] = useState({});
 
   useEffect(() => {
     const state = getState();
     if (state?.calibration) {
-      setFeedbackMethod(state.calibration.feedbackMethod || '');
-      if (state.calibration.answers) {
-        setAnswers(state.calibration.answers);
-      }
-      if (state.calibration.result) {
-        setResult(state.calibration.result);
-      }
+      setSignal(state.calibration.signal || '');
+      setClarity(state.calibration.clarity || {});
     }
   }, []);
 
@@ -69,98 +58,41 @@ function Calibration({ navigate, goBack }) {
     });
   };
 
-  const handleSelectMethod = (value) => {
-    setFeedbackMethod(value);
-    setResult(null);
-    setAnswers({});
-    saveCalibrationState({
-      feedbackMethod: value,
-      feedbackMethodMap: FEEDBACK_METHOD_MAP[value],
-      answers: {},
-      result: null,
-    });
+  const currentSignal = SIGNALS.find((s) => s.key === signal);
+
+  const handleSelectSignal = (value) => {
+    setSignal(value);
+    setClarity({});
+    saveCalibrationState({ signal: value, clarity: {} });
   };
 
-  const handleAnswer = (questionId, answer) => {
-    const next = { ...answers, [questionId]: answer };
-    setAnswers(next);
-    saveCalibrationState({ answers: next, result: null });
-
-    if (Object.keys(next).length === 3) {
-      evaluateResult(next);
-    }
+  const handleClarity = (questionId, value) => {
+    const next = { ...clarity, [questionId]: value };
+    setClarity(next);
+    saveCalibrationState({ clarity: next });
   };
 
-  const evaluateResult = (currentAnswers) => {
-    let validCount = 0;
-    let matchCount = 0;
-
-    CALIBRATION_QUESTIONS.forEach((q) => {
-      const answer = currentAnswers[q.id];
-      if (answer && answer !== 'unknown') {
-        validCount++;
-        if (answer === q.expected) {
-          matchCount++;
-        }
-      }
-    });
-
-    const passed = validCount >= 2 && matchCount >= 2;
-    const outcome = passed ? 'pass' : 'fail';
-
-    setResult(outcome);
-    saveCalibrationState({ answers: currentAnswers, result: outcome });
-  };
-
-  const handleRetry = () => {
-    setAnswers({});
-    setResult(null);
-    saveCalibrationState({ answers: {}, result: null });
-  };
-
-  const handleNextPage = () => {
-    const state = getState() || {};
-    if (!state.questionChain || state.questionChain.length === 0) {
-      setState({ ...state, questionChain: demoCase.questionChain });
-    }
-    // 确保 feedbackMethodMap 存在
-    const cal = state.calibration || {};
-    if (!cal.feedbackMethodMap && cal.feedbackMethod) {
-      const map = FEEDBACK_METHOD_MAP[cal.feedbackMethod];
-      if (map) {
-        setState({
-          ...state,
-          calibration: { ...cal, feedbackMethodMap: map },
-        });
-      }
-    }
-    if (result === 'pass') {
-      navigate('questionChain');
-    } else {
-      navigate('pauseGuess');
-    }
-  };
-
-  const allAnswered = Object.keys(answers).length === 3;
+  const allAnswered =
+    signal !== '' && Object.keys(clarity).length === CALIBRATION_QUESTIONS.length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      <PageHeader title="信号校准" onBack={goBack} />
-
+      {/* 标题 */}
       <div>
-        <h2 className="brand-h2">确认患者的反馈方式</h2>
+        <h2 className="brand-h2">确认本次反馈约定</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
-          选择一种TA能使用的反馈信号，再用 3 个简单问题确认是否稳定
+          先选定一种患者能用的反馈信号，然后用几个问题确认它的可辨识度
         </p>
       </div>
 
+      {/* 选择约定方式 */}
       <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
         <label className="brand-caption" style={{ fontWeight: 'var(--font-weight-medium)' }}>
-          反馈方式
+          约定方式
         </label>
         <select
-          value={feedbackMethod}
-          onChange={(e) => handleSelectMethod(e.target.value)}
+          value={signal}
+          onChange={(e) => handleSelectSignal(e.target.value)}
           style={{
             width: '100%',
             minHeight: '48px',
@@ -169,32 +101,67 @@ function Calibration({ navigate, goBack }) {
             border: '1px solid var(--border-medium)',
             background: 'rgba(255, 255, 255, 0.6)',
             fontFamily: 'inherit',
-            fontSize: '16px',
-            color: feedbackMethod ? 'var(--text-primary)' : 'var(--text-tertiary)',
+            fontSize: 'var(--font-size-sm)',
+            color: signal ? 'var(--text-primary)' : 'var(--text-tertiary)',
             appearance: 'none',
             WebkitAppearance: 'none',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%239A9A9A' stroke-width='1.5'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 12px center',
           }}
         >
           <option value="" disabled>
-            请选择反馈方式...
+            请选择反馈约定...
           </option>
-          {FEEDBACK_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
+          {SIGNALS.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.label}
             </option>
           ))}
         </select>
       </div>
 
-      {feedbackMethod && (
+      {/* 约定详情卡片 */}
+      {currentSignal && (
+        <div
+          className="brand-card"
+          style={{
+            background: 'var(--info-bg)',
+            border: '1px solid var(--info)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-sm)',
+          }}
+        >
+          <p className="brand-caption" style={{ fontWeight: 'var(--font-weight-semibold)', color: 'var(--info)' }}>
+            本次反馈约定
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+            <p className="brand-body" style={{ fontSize: 'var(--font-size-sm)' }}>
+              <strong>是：</strong>
+              {currentSignal.rules.yes}
+            </p>
+            <p className="brand-body" style={{ fontSize: 'var(--font-size-sm)' }}>
+              <strong>不是：</strong>
+              {currentSignal.rules.no}
+            </p>
+            <p className="brand-body" style={{ fontSize: 'var(--font-size-sm)' }}>
+              <strong>不确定：</strong>
+              {currentSignal.rules.unknown}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 校准问题 */}
+      {currentSignal && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <p className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-            请用选定的方式依次提问，观察反馈后点选对应按钮
+            请用选定的约定向患者依次提问，观察后判断反馈是否清楚
           </p>
 
           {CALIBRATION_QUESTIONS.map((q, index) => {
-            const answered = answers[q.id];
-            const isActive = result === null;
+            const answered = clarity[q.id];
 
             return (
               <div
@@ -204,7 +171,6 @@ function Calibration({ navigate, goBack }) {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 'var(--space-md)',
-                  opacity: isActive ? 1 : 0.8,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-sm)' }}>
@@ -218,11 +184,9 @@ function Calibration({ navigate, goBack }) {
                       height: '24px',
                       borderRadius: 'var(--radius-full)',
                       background: answered
-                        ? answered === 'yes'
+                        ? answered === 'clear'
                           ? 'var(--success-bg)'
-                          : answered === 'no'
-                            ? 'var(--error-bg)'
-                            : 'var(--warning-bg)'
+                          : 'var(--warning-bg)'
                         : 'rgba(61, 61, 61, 0.06)',
                       display: 'flex',
                       alignItems: 'center',
@@ -239,17 +203,15 @@ function Calibration({ navigate, goBack }) {
 
                 <div style={{ display: 'flex', gap: 'var(--space-sm)', marginLeft: '32px' }}>
                   {[
-                    { key: 'yes', label: '是', color: 'var(--success)', bgColor: 'var(--success-bg)' },
-                    { key: 'no', label: '不是', color: 'var(--error)', bgColor: 'var(--error-bg)' },
-                    { key: 'unknown', label: '我不知道', color: 'var(--warning)', bgColor: 'var(--warning-bg)' },
+                    { key: 'clear', label: '反馈清楚', color: 'var(--success)', bgColor: 'var(--success-bg)' },
+                    { key: 'unclear', label: '反馈不清楚', color: 'var(--warning)', bgColor: 'var(--warning-bg)' },
                   ].map((btn) => (
                     <button
                       key={btn.key}
-                      onClick={() => handleAnswer(q.id, btn.key)}
-                      disabled={!isActive}
+                      onClick={() => handleClarity(q.id, btn.key)}
                       style={{
                         flex: 1,
-                        minHeight: '48px',
+                        minHeight: '40px',
                         borderRadius: 'var(--radius-sm)',
                         border: answered === btn.key
                           ? `1.5px solid ${btn.color}`
@@ -259,7 +221,7 @@ function Calibration({ navigate, goBack }) {
                         fontFamily: 'inherit',
                         fontSize: 'var(--font-size-sm)',
                         fontWeight: 'var(--font-weight-medium)',
-                        cursor: isActive ? 'pointer' : 'default',
+                        cursor: 'pointer',
                         transition: 'all var(--transition-fast)',
                       }}
                     >
@@ -273,68 +235,46 @@ function Calibration({ navigate, goBack }) {
         </div>
       )}
 
-      {result === 'pass' && (
-        <div
-          className="brand-card"
-          style={{
-            background: 'var(--success-bg)',
-            border: '1px solid var(--success)',
-            textAlign: 'center',
-          }}
-        >
-          <p className="brand-body" style={{ color: 'var(--success)', fontWeight: 'var(--font-weight-medium)' }}>
-            校准通过，可以开始理解
-          </p>
+      {/* 人工判断按钮 */}
+      {currentSignal && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          {!allAnswered && (
+            <p
+              className="brand-small"
+              style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}
+            >
+              请为全部 3 个问题做出判断后，再选择下方按钮
+            </p>
+          )}
+
+          <button
+            className="brand-btn-primary"
+            disabled={!allAnswered}
+            onClick={() => {
+              saveCalibrationState({ passed: true });
+              navigate('questionChain');
+            }}
+            style={{
+              width: '100%',
+              opacity: allAnswered ? 1 : 0.5,
+              cursor: allAnswered ? 'pointer' : 'not-allowed',
+            }}
+          >
+            反馈基本稳定，开始提问
+          </button>
+
+          <button
+            className="brand-btn-outline"
+            onClick={() => {
+              saveCalibrationState({ passed: false });
+              navigate('pauseGuess');
+            }}
+            style={{ width: '100%' }}
+          >
+            暂不适合继续，进入暂停记录
+          </button>
         </div>
       )}
-
-      {result === 'fail' && (
-        <div
-          className="brand-card"
-          style={{
-            background: 'var(--warning-bg)',
-            border: '1px solid var(--warning)',
-            textAlign: 'center',
-          }}
-        >
-          <p className="brand-body" style={{ color: 'var(--warning)', fontWeight: 'var(--font-weight-medium)' }}>
-            反馈不够稳定，建议暂停猜测
-          </p>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-        {result && (
-          <>
-            <button
-              className="brand-btn-primary"
-              onClick={handleNextPage}
-              style={{ width: '100%' }}
-            >
-              {result === 'pass' ? '开始理解' : '暂停并查看'}
-            </button>
-            <button
-              className="brand-btn-outline"
-              onClick={handleRetry}
-              style={{ width: '100%' }}
-            >
-              重新校准
-            </button>
-          </>
-        )}
-
-        {!result && allAnswered && feedbackMethod && (
-          <div className="brand-small" style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-            正在评估校准结果...
-          </div>
-        )}
-
-        {!result && !allAnswered && feedbackMethod && (
-          <p className="brand-small" style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-            请回答全部 3 个问题后查看结果
-          </p>
-        )}
-      </div>
     </div>
   );
 }

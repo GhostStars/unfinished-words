@@ -15,14 +15,9 @@ export const demoCase = {
     { id: 3, meaning: '想听那首老歌', confidence: 0.5 },
   ],
   calibration: {
-    feedbackMethod: 'blink',
-    feedbackMethodMap: {
-      yes: '眨眼一次',
-      no: '眨眼两次',
-      unknown: '无明显反应',
-    },
-    answers: { 1: 'yes', 2: 'yes', 3: 'yes' },
-    result: 'pass',
+    signal: 'blink',
+    clarity: { 1: 'clear', 2: 'clear', 3: 'clear' },
+    passed: true,
   },
   questionChain: [
     {
