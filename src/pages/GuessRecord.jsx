@@ -159,7 +159,7 @@ function GuessRecord({ navigate }) {
                     color: 'var(--text-tertiary)',
                   }}
                 >
-                  {(c.confidence * 100).toFixed(0)}%
+                  {c.confidence >= 0.7 ? '较高' : c.confidence >= 0.4 ? '中等' : '较低'}
                 </span>
               </div>
             ))}

@@ -175,7 +175,7 @@ function PauseGuess({ navigate }) {
                   {c.meaning}
                 </span>
                 <span className="brand-small" style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
-                  {Math.round((c.confidence || 0.5) * 100)}%
+                  {c.confidence >= 0.7 ? '较高' : c.confidence >= 0.4 ? '中等' : '较低'}
                 </span>
               </div>
             ))}
