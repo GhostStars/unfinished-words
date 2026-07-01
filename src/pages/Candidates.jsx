@@ -32,6 +32,7 @@ const IconChevronRight = () => (
 
 function Candidates({ navigate }) {
   const [candidates, setCandidates] = useState([]);
+  const [lifeClues, setLifeClues] = useState([]);
 
   useEffect(() => {
     const state = getState();
@@ -39,6 +40,11 @@ function Candidates({ navigate }) {
       setCandidates(state.candidates);
     } else {
       setCandidates(demoCase.candidates);
+    }
+    if (state?.lifeClues && state.lifeClues.length > 0) {
+      setLifeClues(state.lifeClues);
+    } else {
+      setLifeClues(demoCase.lifeClues);
     }
   }, []);
 
@@ -173,9 +179,15 @@ function Candidates({ navigate }) {
                   flex: 1,
                   paddingTop: '4px',
                   lineHeight: 'var(--line-height-relaxed)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-xs)',
                 }}
               >
-                {c.meaning}
+                <span>{c.meaning}</span>
+                <span className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
+                  依据来自：模糊字迹 + 生命线索「{lifeClues[(c.id - 1) % lifeClues.length]?.content?.slice(0, 20) || '…'}」
+                </span>
               </span>
 
               {/* Actions */}
@@ -315,6 +327,8 @@ function Candidates({ navigate }) {
           </span>
           <p className="brand-caption" style={{ color: 'var(--text-secondary)', lineHeight: 'var(--line-height-relaxed)' }}>
             当前还无法直接判断患者具体含义，需要通过简单问题进一步靠近。
+            <br />
+            生命线索只作为理解参考，最终仍以患者当下稳定反馈为准。
           </p>
         </div>
 
