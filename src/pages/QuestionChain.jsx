@@ -22,16 +22,17 @@ function QuestionChain({ navigate, goBack }) {
   const [feedbackLog, setFeedbackLog] = useState([]);
   const [fadeIn, setFadeIn] = useState(true);
   const [historyExpanded, setHistoryExpanded] = useState(false);
-  const [hasQuestions, setHasQuestions] = useState(true);
   const [feedbackMethodMap, setFeedbackMethodMap] = useState(null);
 
   useEffect(() => {
-    const state = getState();
-    const questions = state?.questionChain || [];
+    let state = getState() || {};
+    let questions = state.questionChain || [];
 
+    // 若问题链为空，自动加载演示数据并保存
     if (questions.length === 0) {
-      setHasQuestions(false);
-      return;
+      questions = demoCase.questionChain || [];
+      state = { ...state, questionChain: questions };
+      setState(state);
     }
 
     const map = {};
@@ -44,13 +45,13 @@ function QuestionChain({ navigate, goBack }) {
     setQuestionOrder(order);
 
     // 读取反馈方式约定
-    const cal = state?.calibration;
+    const cal = state.calibration;
     if (cal?.signal && SIGNAL_RULES[cal.signal]) {
       setFeedbackMethodMap(SIGNAL_RULES[cal.signal]);
     }
 
     const progress = state?.questionChainProgress;
-    if (progress) {
+    if (progress && map[progress.currentQuestionId]) {
       setCurrentQuestionId(progress.currentQuestionId);
       setRoundCount(progress.roundCount);
       setConsecutiveUnknown(progress.consecutiveUnknown);
