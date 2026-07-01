@@ -17,7 +17,7 @@ function Home({ navigate }) {
 
   const handleStartNewLifeClues = () => {
     createSession();
-    navigate('lifeClues');
+    navigate('lifeClues', { from: 'home' });
   };
 
   return (

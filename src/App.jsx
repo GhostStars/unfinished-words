@@ -25,8 +25,10 @@ const PAGE_TITLES = {
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [history, setHistory] = useState([]);
+  const [navigateData, setNavigateData] = useState({});
 
-  const navigate = useCallback((page) => {
+  const navigate = useCallback((page, data = {}) => {
+    setNavigateData(data);
     setHistory((prev) => [...prev, currentPage]);
     setCurrentPage(page);
   }, [currentPage]);
@@ -44,7 +46,7 @@ function App() {
     });
   }, []);
 
-  const pageProps = { navigate, goBack, pageTitle: PAGE_TITLES[currentPage] };
+  const pageProps = { navigate, goBack, pageTitle: PAGE_TITLES[currentPage], navigateData };
 
   let pageComponent;
   switch (currentPage) {
