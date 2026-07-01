@@ -126,7 +126,7 @@ function ExpressionRecord({ navigate, goBack }) {
   };
 
   const handleContinue = () => {
-    archiveCurrentSession('completed');
+    archiveCurrentSession('completed', record?.expression);
     createSession();
     navigate('inputClue');
   };

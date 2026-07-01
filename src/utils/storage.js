@@ -77,9 +77,6 @@ export function setState(data) {
     if (sessionIndex >= 0) {
       state.sessions[sessionIndex].data = { ...state.sessions[sessionIndex].data, ...data };
       state.sessions[sessionIndex].updatedAt = new Date().toISOString();
-      if (data?.inputClue?.description) {
-        state.sessions[sessionIndex].title = data.inputClue.description.slice(0, 20);
-      }
     } else {
       // currentSessionId 不存在，创建新 session
       const sessionId = 'session_' + Date.now();

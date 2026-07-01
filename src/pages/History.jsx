@@ -4,7 +4,6 @@ import PageHeader from '../components/PageHeader.jsx';
 
 const statusConfig = {
   completed: { label: '已完成', color: 'var(--success)', bg: 'var(--success-bg)' },
-  in_progress: { label: '进行中', color: 'var(--info)', bg: 'var(--info-bg)' },
   paused: { label: '已暂停', color: 'var(--warning)', bg: 'var(--warning-bg)' },
 };
 
@@ -18,6 +17,15 @@ function formatDate(iso) {
   return `${d.getMonth() + 1}月${d.getDate()}日 ${timeStr}`;
 }
 
+function getResumePage(sessionData) {
+  if (sessionData?.expressionResult) return 'expressionRecord';
+  if (sessionData?.questionChainProgress?.feedbackLog?.length > 0) return 'questionChain';
+  if (sessionData?.calibration?.result) return 'calibration';
+  if (sessionData?.candidates?.length > 0) return 'candidates';
+  if (sessionData?.inputClue) return 'inputClue';
+  return 'inputClue';
+}
+
 function History({ navigate, goBack }) {
   const [sessions, setSessions] = useState([]);
 
@@ -27,7 +35,13 @@ function History({ navigate, goBack }) {
 
   const handleView = (session) => {
     setCurrentSessionId(session.id);
-    navigate('expressionRecord');
+    const isCompleted = session.status === 'completed';
+    if (isCompleted) {
+      navigate('expressionRecord');
+    } else {
+      const resumePage = getResumePage(session.data);
+      navigate(resumePage);
+    }
   };
 
   const handleDelete = (id, e) => {
@@ -67,8 +81,10 @@ function History({ navigate, goBack }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           {sessions.map((session) => {
-            const status = statusConfig[session.status] || statusConfig.in_progress;
-            const hasResult = session.data?.expressionResult;
+            const displayStatus = session.status === 'completed' ? 'completed' : 'paused';
+            const status = statusConfig[displayStatus];
+            const conclusion = session.data?.expressionResult?.expression;
+            const title = conclusion || '新猜测';
             return (
               <div
                 key={session.id}
@@ -101,7 +117,7 @@ function History({ navigate, goBack }) {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {session.title || '未命名猜测'}
+                    {title}
                   </span>
                   <span
                     className="brand-small"
@@ -122,17 +138,6 @@ function History({ navigate, goBack }) {
                   <span className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
                     {formatDate(session.updatedAt)}
                   </span>
-                  {hasResult && (
-                    <span
-                      className="brand-small"
-                      style={{
-                        color: 'var(--text-secondary)',
-                        fontWeight: 'var(--font-weight-medium)',
-                      }}
-                    >
-                      {hasResult.expression?.slice(0, 12)}...
-                    </span>
-                  )}
                 </div>
 
                 <button
