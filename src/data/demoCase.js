@@ -16,7 +16,6 @@ export const demoCase = {
   ],
   calibration: {
     signal: 'blink',
-    clarity: { 1: 'clear', 2: 'clear', 3: 'clear' },
     passed: true,
   },
   questionChain: [
