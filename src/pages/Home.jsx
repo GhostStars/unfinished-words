@@ -142,16 +142,6 @@ function Home({ navigate }) {
           gap: 'var(--space-md)',
         }}
       >
-        {hasHistory && (
-          <button
-            className="brand-btn-outline"
-            onClick={() => navigate('history')}
-            style={{ width: '100%' }}
-          >
-            查看历史猜测
-          </button>
-        )}
-
         <button
           className="brand-btn-primary"
           onClick={handleStartNew}
@@ -168,6 +158,16 @@ function Home({ navigate }) {
             &rarr;
           </span>
         </button>
+
+        {hasHistory && (
+          <button
+            className="brand-btn-outline"
+            onClick={() => navigate('history')}
+            style={{ width: '100%' }}
+          >
+            查看历史猜测
+          </button>
+        )}
       </div>
 
       <div style={{ height: '48px', width: '100%' }} />
