@@ -140,6 +140,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: 'consecutive_unknown',
       });
+      archiveCurrentSession('paused');
       navigate('pauseGuess');
       return;
     }
@@ -153,6 +154,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: 'max_rounds',
       });
+      archiveCurrentSession('paused');
       navigate('pauseGuess');
       return;
     }
@@ -224,6 +226,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: reason,
       });
+      archiveCurrentSession('paused');
       navigate('pauseGuess');
       return;
     }
@@ -238,6 +241,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: reason,
       });
+      archiveCurrentSession('paused');
       navigate('pauseGuess');
       return;
     }

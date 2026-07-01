@@ -1,39 +1,31 @@
 import { useState, useEffect } from 'react';
-import { getState, archiveCurrentSession } from '../utils/storage.js';
-import PageHeader from '../components/PageHeader.jsx';
+import { getState } from '../utils/storage.js';
 
-const DEFAULT_FEEDBACK_MAP = {
-  yes: '眨眼一次',
-  no: '眨眼两次',
-  unknown: '无明显反应',
+const SIGNAL_RULES = {
+  blink: { yes: '眨眼一次', no: '眨眼两次', unknown: '无明显反应' },
+  hand: { yes: '轻握一次', no: '轻握两次', unknown: '无握动' },
+  nod: { yes: '头微微偏左', no: '头微微偏右', unknown: '无明显偏转' },
 };
 
-function GuessRecord({ navigate, goBack }) {
+const PAUSE_REASON_MAP = {
+  user_pause: '家属主动暂停',
+  consecutive_unknown: '连续多次选择不确定',
+  contradiction: '反馈前后不一致',
+  max_rounds: '问题到达上限仍未形成稳定理解',
+  calibration_unclear: '校准阶段反馈不够清楚',
+};
+
+function GuessRecord({ navigate }) {
   const [state, setState] = useState(null);
-  const [feedbackMethodMap, setFeedbackMethodMap] = useState(null);
 
   useEffect(() => {
     const s = getState();
     setState(s);
-    const cal = s?.calibration;
-    if (cal?.feedbackMethodMap) {
-      setFeedbackMethodMap(cal.feedbackMethodMap);
-    }
   }, []);
-
-  const handleContinueLater = () => {
-    navigate('home');
-  };
-
-  const handleEndAndSave = () => {
-    archiveCurrentSession('paused');
-    navigate('home');
-  };
 
   if (!state) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-        <PageHeader title="猜测记录" onBack={goBack} />
         <h2 className="brand-h2">当前猜测记录</h2>
         <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
           暂无记录
@@ -48,16 +40,18 @@ function GuessRecord({ navigate, goBack }) {
   const feedbackLog = progress?.feedbackLog || [];
   const calibration = state?.calibration;
 
-  const getFeedbackLabel = (key) => {
-    const map = feedbackMethodMap || DEFAULT_FEEDBACK_MAP;
-    return map[key] || DEFAULT_FEEDBACK_MAP[key];
-  };
+  const signalKey = calibration?.signal;
+  const feedbackMap = signalKey && SIGNAL_RULES[signalKey] ? SIGNAL_RULES[signalKey] : SIGNAL_RULES.blink;
+
+  const pauseReasonKey = progress?.pauseReason || 'unknown';
+  const pauseReasonText = PAUSE_REASON_MAP[pauseReasonKey] || '当前反馈不足以继续判断';
 
   const getStatusLabel = () => {
-    if (calibration?.result === 'fail') return '反馈暂不稳定';
+    if (state?.expressionResult) return '已完成';
+    if (calibration?.result === 'fail' || calibration?.passed === false) return '反馈暂不稳定';
     if (progress?.consecutiveUnknown >= 3) return '连续多次无法确认';
     if (progress?.roundCount >= 8) return '已达最大尝试轮次';
-    return '主动暂停猜测';
+    return pauseReasonText;
   };
 
   const getAnswerLabel = (answer) => {
@@ -76,83 +70,31 @@ function GuessRecord({ navigate, goBack }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      <PageHeader title="猜测记录" onBack={goBack} />
-
       <div>
         <h2 className="brand-h2">当前猜测记录</h2>
       </div>
 
+      {/* 当前状态标签 */}
       <div
         className="brand-card"
         style={{
-          background: 'var(--warning-bg)',
-          border: '1px solid var(--warning)',
+          background: state?.expressionResult ? 'var(--success-bg)' : 'var(--warning-bg)',
+          border: `1px solid ${state?.expressionResult ? 'var(--success)' : 'var(--warning)'}`,
           textAlign: 'center',
         }}
       >
         <p
           className="brand-caption"
-          style={{ color: 'var(--warning)', fontWeight: 'var(--font-weight-medium)' }}
+          style={{
+            color: state?.expressionResult ? 'var(--success)' : 'var(--warning)',
+            fontWeight: 'var(--font-weight-medium)',
+          }}
         >
           {getStatusLabel()}
         </p>
       </div>
 
-      {/* 本次反馈约定 */}
-      <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-        <h3 className="brand-h3">本次反馈约定</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-            <span
-              className="brand-small"
-              style={{
-                display: 'inline-block',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--success)',
-                flexShrink: 0,
-              }}
-            />
-            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-              是：{getFeedbackLabel('yes')}
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-            <span
-              className="brand-small"
-              style={{
-                display: 'inline-block',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--error)',
-                flexShrink: 0,
-              }}
-            />
-            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-              不是：{getFeedbackLabel('no')}
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-            <span
-              className="brand-small"
-              style={{
-                display: 'inline-block',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--warning)',
-                flexShrink: 0,
-              }}
-            />
-            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-              我不知道：{getFeedbackLabel('unknown')}
-            </span>
-          </div>
-        </div>
-      </div>
-
+      {/* 已输入线索 */}
       <div
         className="brand-card"
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}
@@ -187,6 +129,7 @@ function GuessRecord({ navigate, goBack }) {
         )}
       </div>
 
+      {/* 当前保留候选 */}
       <div
         className="brand-card"
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}
@@ -228,6 +171,7 @@ function GuessRecord({ navigate, goBack }) {
         )}
       </div>
 
+      {/* 已问过的问题表格 */}
       <div
         className="brand-card"
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}
@@ -240,46 +184,39 @@ function GuessRecord({ navigate, goBack }) {
                 key={idx}
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: 'var(--space-xs)',
+                  alignItems: 'center',
+                  gap: 'var(--space-sm)',
                   padding: 'var(--space-sm) var(--space-md)',
                   background: 'rgba(255, 255, 255, 0.5)',
                   borderRadius: 'var(--radius-md)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                  <span
-                    className="brand-small"
-                    style={{
-                      color: 'var(--text-tertiary)',
-                      flexShrink: 0,
-                      minWidth: '44px',
-                    }}
-                  >
-                    第{idx + 1}轮
-                  </span>
-                  <span
-                    className="brand-caption"
-                    style={{ flex: 1, color: 'var(--text-secondary)' }}
-                  >
-                    {log.questionText}
-                  </span>
-                  <span
-                    className="brand-small"
-                    style={{
-                      fontWeight: 'var(--font-weight-medium)',
-                      color: getAnswerColor(log.answer),
-                      flexShrink: 0,
-                    }}
-                  >
-                    {getAnswerLabel(log.answer)}
-                  </span>
-                </div>
-                <div style={{ paddingLeft: '52px' }}>
-                  <span className="brand-small" style={{ color: 'var(--text-tertiary)' }}>
-                    观察到的反馈：{log.observedFeedback || getFeedbackLabel(log.answer)}，记录为：{getAnswerLabel(log.answer)}
-                  </span>
-                </div>
+                <span
+                  className="brand-small"
+                  style={{
+                    color: 'var(--text-tertiary)',
+                    flexShrink: 0,
+                    minWidth: '44px',
+                  }}
+                >
+                  第{idx + 1}轮
+                </span>
+                <span
+                  className="brand-caption"
+                  style={{ flex: 1, color: 'var(--text-secondary)' }}
+                >
+                  {log.questionText}
+                </span>
+                <span
+                  className="brand-small"
+                  style={{
+                    fontWeight: 'var(--font-weight-medium)',
+                    color: getAnswerColor(log.answer),
+                    flexShrink: 0,
+                  }}
+                >
+                  {getAnswerLabel(log.answer)}
+                </span>
               </div>
             ))}
           </div>
@@ -290,20 +227,76 @@ function GuessRecord({ navigate, goBack }) {
         )}
       </div>
 
+      {/* 本次反馈约定 */}
+      <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+        <h3 className="brand-h3">本次反馈约定</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span
+              className="brand-small"
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--success)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
+              是：{feedbackMap.yes}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span
+              className="brand-small"
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--error)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
+              不是：{feedbackMap.no}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span
+              className="brand-small"
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--warning)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
+              不确定：{feedbackMap.unknown}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 底部按钮 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
         <button
           className="brand-btn-outline"
-          onClick={handleContinueLater}
+          onClick={() => navigate('history')}
           style={{ width: '100%' }}
         >
-          稍后继续
+          返回历史记录
         </button>
         <button
           className="brand-btn-primary"
-          onClick={handleEndAndSave}
+          onClick={() => navigate('home')}
           style={{ width: '100%' }}
         >
-          结束并保存
+          返回首页
         </button>
       </div>
     </div>
