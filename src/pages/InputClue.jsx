@@ -250,14 +250,14 @@ function InputClue({ navigate }) {
             }}
             htmlFor="keyword-input"
           >
-            关键词
+            可能含义
           </label>
           <input
             id="keyword-input"
             type="text"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="输入关键词"
+            placeholder="举例：北，北京"
             autoComplete="off"
             style={{
               width: '100%',
