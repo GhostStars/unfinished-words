@@ -2,17 +2,35 @@ import { useState, useEffect } from 'react';
 import { getState, setState } from '../utils/storage.js';
 import { demoCase } from '../data/demoCase.js';
 
+const DESC_HINT = '举例：反复眨眼，右手微微抬起指向门口';
+const CTX_HINT = '举例：探访快结束了，看到家人准备离开';
+
 function InputClue({ navigate }) {
   const [description, setDescription] = useState('');
   const [context, setContext] = useState('');
   const [image, setImage] = useState(null);
+  const [descHint, setDescHint] = useState(true);
+  const [ctxHint, setCtxHint] = useState(true);
 
   useEffect(() => {
     const state = getState();
     if (state?.inputClue) {
-      setDescription(state.inputClue.description || '');
-      setContext(state.inputClue.context || '');
+      const d = state.inputClue.description || '';
+      const c = state.inputClue.context || '';
+      const isDemoDesc = d === demoCase.inputClue.description;
+      const isDemoCtx = c === demoCase.inputClue.context;
+      const hasDesc = !isDemoDesc && d.trim().length > 0;
+      const hasCtx = !isDemoCtx && c.trim().length > 0;
+      setDescription(hasDesc ? d : DESC_HINT);
+      setContext(hasCtx ? c : CTX_HINT);
       setImage(state.inputClue.image || null);
+      setDescHint(!hasDesc);
+      setCtxHint(!hasCtx);
+    } else {
+      setDescription(DESC_HINT);
+      setContext(CTX_HINT);
+      setDescHint(true);
+      setCtxHint(true);
     }
   }, []);
 
@@ -35,8 +53,8 @@ function InputClue({ navigate }) {
     setState({
       ...state,
       inputClue: {
-        description,
-        context,
+        description: descHint ? '' : description,
+        context: ctxHint ? '' : context,
         image,
       },
     });
@@ -44,20 +62,47 @@ function InputClue({ navigate }) {
   };
 
   const handleUseDemo = () => {
-    const state = getState() || {};
-    setState({
-      ...state,
-      inputClue: {
-        description: demoCase.inputClue.description,
-        context: demoCase.inputClue.context,
-        image: null,
-      },
-      lifeClues: demoCase.lifeClues,
-      candidates: demoCase.candidates,
-      calibration: demoCase.calibration,
-      questionChain: demoCase.questionChain,
-    });
-    navigate('lifeClues');
+    setDescription(demoCase.inputClue.description);
+    setContext(demoCase.inputClue.context);
+    setImage(null);
+    setDescHint(false);
+    setCtxHint(false);
+  };
+
+  const handleDescFocus = () => {
+    if (descHint) {
+      setDescription('');
+      setDescHint(false);
+    }
+  };
+
+  const handleDescBlur = () => {
+    if (!description.trim()) {
+      setDescription(DESC_HINT);
+      setDescHint(true);
+    }
+  };
+
+  const handleCtxFocus = () => {
+    if (ctxHint) {
+      setContext('');
+      setCtxHint(false);
+    }
+  };
+
+  const handleCtxBlur = () => {
+    if (!context.trim()) {
+      setContext(CTX_HINT);
+      setCtxHint(true);
+    }
+  };
+
+  const handleDescChange = (e) => {
+    setDescription(e.target.value);
+  };
+
+  const handleCtxChange = (e) => {
+    setContext(e.target.value);
   };
 
   return (
@@ -77,9 +122,10 @@ function InputClue({ navigate }) {
           <textarea
             id="description"
             className="brand-body"
-            placeholder="例如：反复眨眼，右手微微抬起指向门口"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={handleDescChange}
+            onFocus={handleDescFocus}
+            onBlur={handleDescBlur}
             rows={4}
             style={{
               width: '100%',
@@ -91,7 +137,7 @@ function InputClue({ navigate }) {
               fontFamily: 'inherit',
               fontSize: '16px',
               lineHeight: 'inherit',
-              color: 'inherit',
+              color: descHint ? 'var(--text-tertiary)' : 'var(--text-primary)',
             }}
           />
         </div>
@@ -103,9 +149,10 @@ function InputClue({ navigate }) {
           <textarea
             id="context"
             className="brand-body"
-            placeholder="例如：探访快结束了，看到家人准备离开"
             value={context}
-            onChange={(e) => setContext(e.target.value)}
+            onChange={handleCtxChange}
+            onFocus={handleCtxFocus}
+            onBlur={handleCtxBlur}
             rows={3}
             style={{
               width: '100%',
@@ -117,7 +164,7 @@ function InputClue({ navigate }) {
               fontFamily: 'inherit',
               fontSize: '16px',
               lineHeight: 'inherit',
-              color: 'inherit',
+              color: ctxHint ? 'var(--text-tertiary)' : 'var(--text-primary)',
             }}
           />
         </div>
