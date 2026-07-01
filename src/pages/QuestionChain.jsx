@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getState, setState } from '../utils/storage.js';
+import { getState, setState, archiveCurrentSession } from '../utils/storage.js';
+import { demoCase } from '../data/demoCase.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 const MAX_ROUNDS = 8;
@@ -117,6 +118,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: reason,
       });
+      archiveCurrentSession('paused');
       navigate('pauseGuess');
       return;
     }
@@ -260,26 +262,6 @@ function QuestionChain({ navigate, goBack }) {
   const currentQuestion = currentQuestionId ? questionMap[currentQuestionId] : null;
   const showWeakHint = roundCount + 1 >= WEAK_RESPONSE_HINT_THRESHOLD;
   const hasCustomMap = !!feedbackMethodMap;
-
-  // 没有问题数据时的兜底界面
-  if (!hasQuestions) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)', minHeight: '70vh' }}>
-        <PageHeader title="问题链" onBack={goBack} />
-        <div className="brand-card" style={{ textAlign: 'center', padding: 'var(--space-xl) var(--space-md)' }}>
-          <p className="brand-body" style={{ marginBottom: 'var(--space-md)' }}>
-            暂没有问题链数据
-          </p>
-          <p className="brand-caption" style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)' }}>
-            请在"输入线索"页点击"使用示例体验"来加载演示数据，或返回上一页重新操作。
-          </p>
-          <button className="brand-btn-primary" onClick={() => navigate('calibration')} style={{ width: '100%' }}>
-            返回校准页
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   if (!currentQuestion) {
     return (

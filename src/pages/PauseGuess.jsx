@@ -1,82 +1,58 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getState, archiveCurrentSession } from '../utils/storage.js';
-import PageHeader from '../components/PageHeader.jsx';
 
-const DEFAULT_FEEDBACK_MAP = {
-  yes: '眨眼一次',
-  no: '眨眼两次',
-  unknown: '无明显反应',
+const SIGNAL_RULES = {
+  blink: { yes: '眨眼一次', no: '眨眼两次', unknown: '无明显反应' },
+  hand: { yes: '轻握一次', no: '轻握两次', unknown: '无握动' },
+  nod: { yes: '头微微偏左', no: '头微微偏右', unknown: '无明显偏转' },
 };
 
-function PauseGuess({ navigate, goBack }) {
-  const [hasRecord, setHasRecord] = useState(false);
-  const [pauseReason, setPauseReason] = useState(null);
-  const [feedbackMethodMap, setFeedbackMethodMap] = useState(null);
-  const [feedbackLog, setFeedbackLog] = useState([]);
+const PAUSE_REASON_MAP = {
+  user_pause: '家属主动暂停',
+  consecutive_unknown: '连续多次选择不确定',
+  contradiction: '反馈前后不一致',
+  max_rounds: '问题到达上限仍未形成稳定理解',
+  calibration_unclear: '校准阶段反馈不够清楚',
+};
+
+function PauseGuess({ navigate }) {
+  const [state, setState] = useState(null);
 
   useEffect(() => {
-    const state = getState();
-    const progress = state?.questionChainProgress;
-    const hasLog = progress?.feedbackLog && progress.feedbackLog.length > 0;
-    setHasRecord(!!hasLog);
-    setPauseReason(progress?.pauseReason || null);
-    setFeedbackLog(progress?.feedbackLog || []);
-
-    const cal = state?.calibration;
-    if (cal?.feedbackMethodMap) {
-      setFeedbackMethodMap(cal.feedbackMethodMap);
-    }
+    const s = getState();
+    setState(s);
+    archiveCurrentSession('paused');
   }, []);
 
-  const getFeedbackLabel = (key) => {
-    const map = feedbackMethodMap || DEFAULT_FEEDBACK_MAP;
-    return map[key] || DEFAULT_FEEDBACK_MAP[key];
+  const inputClue = state?.inputClue;
+  const progress = state?.questionChainProgress;
+  const feedbackLog = progress?.feedbackLog || [];
+  const calibration = state?.calibration;
+
+  const signalKey = calibration?.signal;
+  const feedbackMap = signalKey && SIGNAL_RULES[signalKey] ? SIGNAL_RULES[signalKey] : SIGNAL_RULES.blink;
+
+  const pauseReasonKey = progress?.pauseReason || 'unknown';
+  const pauseReasonText = PAUSE_REASON_MAP[pauseReasonKey] || '当前反馈不足以继续判断';
+
+  const getAnswerLabel = (answer) => {
+    if (answer === 'yes') return '是';
+    if (answer === 'no') return '不是';
+    if (answer === 'unknown') return '不知道';
+    if (answer === 'pause') return '暂停';
+    return answer;
   };
 
-  const getPauseMessage = () => {
-    const unknownLabel = getFeedbackLabel('unknown');
-    switch (pauseReason) {
-      case 'consecutive_unknown':
-        return `连续多次记录为"我不知道"（${unknownLabel}），当前不适合继续确认。`;
-      case 'contradiction':
-        return '本轮反馈前后不一致，继续追问可能造成误解。';
-      case 'max_rounds':
-        return '已进行多轮尝试，建议暂停整理后再继续。';
-      case 'user_pause':
-        return '你选择了暂停。已尝试的线索和反馈都会被保留。';
-      default:
-        return '当前还无法形成可靠判断。与其继续猜下去，不如先停一停，保留已经尝试过的线索。';
-    }
-  };
-
-  // 统计本轮反馈
-  const yesCount = feedbackLog.filter((l) => l.answer === 'yes').length;
-  const noCount = feedbackLog.filter((l) => l.answer === 'no').length;
-  const unknownCount = feedbackLog.filter((l) => l.answer === 'unknown').length;
-
-  const handleSaveRecord = () => {
-    navigate('guessRecord');
-  };
-
-  const handleContinueLater = () => {
-    navigate('home');
-  };
-
-  const handleRecalibrate = () => {
-    navigate('calibration');
-  };
-
-  const handleEndAttempt = () => {
-    archiveCurrentSession('paused');
-    navigate('home');
+  const getAnswerColor = (answer) => {
+    if (answer === 'yes') return 'var(--success)';
+    if (answer === 'no') return 'var(--error)';
+    return 'var(--warning)';
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      <PageHeader title="暂停猜测" onBack={goBack} />
-
       <div>
-        <h2 className="brand-h2">先停一停</h2>
+        <h2 className="brand-h2">本次尝试已暂停</h2>
         <p
           className="brand-body"
           style={{
@@ -85,9 +61,95 @@ function PauseGuess({ navigate, goBack }) {
             color: 'var(--text-secondary)',
           }}
         >
-          {getPauseMessage()}
+          当前反馈不足以继续判断。线索、图片、问题和反馈已保留，可稍后从历史记录中重新校准并继续。
         </p>
       </div>
+
+      {/* 暂停原因 */}
+      <div
+        className="brand-card"
+        style={{
+          background: 'var(--warning-bg)',
+          border: '1px solid var(--warning)',
+          textAlign: 'center',
+        }}
+      >
+        <p
+          className="brand-caption"
+          style={{ color: 'var(--warning)', fontWeight: 'var(--font-weight-medium)' }}
+        >
+          暂停原因：{pauseReasonText}
+        </p>
+      </div>
+
+      {/* 原始线索 */}
+      <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+        <h3 className="brand-h3">原始线索</h3>
+        {inputClue?.image && (
+          <img
+            src={inputClue.image}
+            alt="线索图片"
+            style={{
+              width: '100%',
+              maxHeight: '180px',
+              objectFit: 'cover',
+              borderRadius: 'var(--radius-md)',
+            }}
+          />
+        )}
+        {inputClue?.description && (
+          <p className="brand-body" style={{ color: 'var(--text-secondary)' }}>
+            {inputClue.description}
+          </p>
+        )}
+        {inputClue?.context && (
+          <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
+            情境：{inputClue.context}
+          </p>
+        )}
+        {!inputClue?.description && !inputClue?.image && (
+          <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>暂无线索</p>
+        )}
+      </div>
+
+      {/* 已问过的问题和反馈 */}
+      {feedbackLog.length > 0 && (
+        <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <h3 className="brand-h3">已问过的问题和反馈</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+            {feedbackLog.map((log, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-sm)',
+                  padding: 'var(--space-sm) var(--space-md)',
+                  background: 'rgba(255, 255, 255, 0.5)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              >
+                <span className="brand-small" style={{ color: 'var(--text-tertiary)', flexShrink: 0, minWidth: '44px' }}>
+                  第{idx + 1}轮
+                </span>
+                <span className="brand-caption" style={{ flex: 1, color: 'var(--text-secondary)' }}>
+                  {log.questionText}
+                </span>
+                <span
+                  className="brand-small"
+                  style={{
+                    fontWeight: 'var(--font-weight-medium)',
+                    color: getAnswerColor(log.answer),
+                    flexShrink: 0,
+                  }}
+                >
+                  {getAnswerLabel(log.answer)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 本次反馈约定 */}
       <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
@@ -106,7 +168,7 @@ function PauseGuess({ navigate, goBack }) {
               }}
             />
             <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-              是：{getFeedbackLabel('yes')}
+              是：{feedbackMap.yes}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
@@ -122,7 +184,7 @@ function PauseGuess({ navigate, goBack }) {
               }}
             />
             <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-              不是：{getFeedbackLabel('no')}
+              不是：{feedbackMap.no}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
@@ -138,51 +200,32 @@ function PauseGuess({ navigate, goBack }) {
               }}
             />
             <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-              我不知道：{getFeedbackLabel('unknown')}
+              不确定：{feedbackMap.unknown}
             </span>
           </div>
         </div>
       </div>
 
-      {/* 本轮反馈统计 */}
-      {feedbackLog.length > 0 && (
-        <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-          <h3 className="brand-h3">本轮反馈统计</h3>
-          <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-            <span className="brand-caption" style={{ color: 'var(--success)' }}>
-              是 {yesCount} 次
-            </span>
-            <span className="brand-caption" style={{ color: 'var(--error)' }}>
-              不是 {noCount} 次
-            </span>
-            <span className="brand-caption" style={{ color: 'var(--warning)' }}>
-              不知道 {unknownCount} 次
-            </span>
-          </div>
-        </div>
-      )}
+      {/* 边界说明 */}
+      <div
+        className="brand-card"
+        style={{
+          textAlign: 'center',
+          background: 'rgba(255, 255, 255, 0.5)',
+        }}
+      >
+        <p className="brand-small" style={{ color: 'var(--text-tertiary)' }}>
+          本记录基于观察与反馈推理，仅供参考，不构成医疗、法律或遗嘱效力
+        </p>
+      </div>
 
+      {/* 按钮 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-        {hasRecord && (
-          <button className="brand-btn-primary" onClick={handleSaveRecord} style={{ width: '100%' }}>
-            保存当前猜测记录
-          </button>
-        )}
-
-        <button
-          className={hasRecord ? 'brand-btn-outline' : 'brand-btn-primary'}
-          onClick={handleContinueLater}
-          style={{ width: '100%' }}
-        >
-          稍后继续
+        <button className="brand-btn-primary" onClick={() => navigate('home')} style={{ width: '100%' }}>
+          返回首页
         </button>
-
-        <button className="brand-btn-outline" onClick={handleRecalibrate} style={{ width: '100%' }}>
-          重新校准反馈
-        </button>
-
-        <button className="brand-btn-danger" onClick={handleEndAttempt} style={{ width: '100%' }}>
-          结束本次尝试
+        <button className="brand-btn-outline" onClick={() => navigate('history')} style={{ width: '100%' }}>
+          查看历史记录
         </button>
       </div>
     </div>

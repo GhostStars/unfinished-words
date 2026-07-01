@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getState, setState, archiveCurrentSession, createSession } from '../utils/storage.js';
+import { getState, archiveCurrentSession } from '../utils/storage.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 const DEFAULT_FEEDBACK_MAP = {
@@ -23,6 +23,10 @@ function ExpressionRecord({ navigate, goBack }) {
     const cal = state?.calibration;
     if (cal?.feedbackMethodMap) {
       setFeedbackMethodMap(cal.feedbackMethodMap);
+    }
+    // 完成后自动归档为 completed
+    if (state?.expressionResult) {
+      archiveCurrentSession('completed', state.expressionResult.expression);
     }
   }, []);
 
@@ -125,14 +129,12 @@ function ExpressionRecord({ navigate, goBack }) {
     }
   };
 
-  const handleContinue = () => {
-    archiveCurrentSession('completed', record?.expression);
-    createSession();
-    navigate('inputClue');
-  };
-
   const handleGoHome = () => {
     navigate('home');
+  };
+
+  const handleGoHistory = () => {
+    navigate('history');
   };
 
   if (!record) {
@@ -162,7 +164,7 @@ function ExpressionRecord({ navigate, goBack }) {
       <PageHeader title="表达记录" onBack={goBack} />
 
       <div>
-        <h2 className="brand-h2">可能表达记录</h2>
+        <h2 className="brand-h2">本次尝试已完成</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)', color: 'var(--text-tertiary)' }}>
           根据你们的互动，这是TA可能想表达的
         </p>
@@ -383,11 +385,11 @@ function ExpressionRecord({ navigate, goBack }) {
         <button className="brand-btn-primary" onClick={handleCopy} style={{ width: '100%' }}>
           {copied ? '已复制到剪贴板' : '复制记录'}
         </button>
-        <button className="brand-btn-outline" onClick={handleContinue} style={{ width: '100%' }}>
-          继续尝试
-        </button>
         <button className="brand-btn-outline" onClick={handleGoHome} style={{ width: '100%' }}>
           返回首页
+        </button>
+        <button className="brand-btn-outline" onClick={handleGoHistory} style={{ width: '100%' }}>
+          查看历史记录
         </button>
       </div>
     </div>

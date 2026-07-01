@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getState, setState } from '../utils/storage.js';
+import { getState, setState, archiveCurrentSession } from '../utils/storage.js';
 
 const SIGNALS = [
   {
@@ -45,7 +45,24 @@ function Calibration({ navigate }) {
 
   const handleSelect = (key) => {
     setSignal(key);
-    saveCalibrationState({ signal: key });
+    const selected = SIGNALS.find((s) => s.key === key);
+    saveCalibrationState({
+      signal: key,
+      feedbackMethodMap: selected?.rules || null,
+      passed: undefined,
+      pauseReason: undefined,
+    });
+  };
+
+  const handleStart = () => {
+    saveCalibrationState({ passed: true });
+    navigate('questionChain');
+  };
+
+  const handlePause = () => {
+    saveCalibrationState({ passed: false, pauseReason: 'calibration_unclear' });
+    archiveCurrentSession('paused');
+    navigate('pauseGuess');
   };
 
   return (
@@ -177,23 +194,17 @@ function Calibration({ navigate }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <button
             className="brand-btn-primary"
-            onClick={() => {
-              saveCalibrationState({ passed: true });
-              navigate('questionChain');
-            }}
+            onClick={handleStart}
             style={{ width: '100%' }}
           >
             反馈基本稳定，开始提问
           </button>
           <button
             className="brand-btn-outline"
-            onClick={() => {
-              saveCalibrationState({ passed: false });
-              navigate('pauseGuess');
-            }}
+            onClick={handlePause}
             style={{ width: '100%' }}
           >
-            暂不适合继续，进入暂停记录
+            暂不适合继续，暂停本次尝试
           </button>
         </div>
       )}

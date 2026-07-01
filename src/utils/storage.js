@@ -30,7 +30,7 @@ function migrateOldData(raw) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         title,
-        status: raw.expressionResult ? 'completed' : 'in_progress',
+        status: raw.expressionResult ? 'completed' : 'paused',
         data: { ...raw },
       },
     ],
@@ -86,7 +86,7 @@ export function setState(data) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         title: data?.inputClue?.description?.slice(0, 20) || '未命名猜测',
-        status: 'in_progress',
+        status: 'paused',
         data: { ...data },
       });
     }
@@ -102,7 +102,7 @@ export function clearState() {
   const sessionIndex = state.sessions.findIndex((s) => s.id === state.currentSessionId);
   if (sessionIndex >= 0) {
     state.sessions[sessionIndex].data = {};
-    state.sessions[sessionIndex].status = 'in_progress';
+    state.sessions[sessionIndex].status = 'paused';
     saveRawState(state);
   }
 }
@@ -151,7 +151,7 @@ export function createSession() {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     title: '新猜测',
-    status: 'in_progress',
+    status: 'paused',
     data: {},
   });
 
