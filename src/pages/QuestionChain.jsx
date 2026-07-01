@@ -6,10 +6,10 @@ const MAX_ROUNDS = 8;
 const MAX_CONSECUTIVE_UNKNOWN = 3;
 const WEAK_RESPONSE_HINT_THRESHOLD = 5;
 
-const DEFAULT_FEEDBACK_MAP = {
-  yes: '眨眼一次',
-  no: '眨眼两次',
-  unknown: '无明显反应',
+const SIGNAL_RULES = {
+  blink: { yes: '眨眼一次', no: '眨眼两次', unknown: '无明显反应' },
+  hand: { yes: '轻握一次', no: '轻握两次', unknown: '无握动' },
+  nod: { yes: '头微微偏左', no: '头微微偏右', unknown: '无明显偏转' },
 };
 
 function QuestionChain({ navigate, goBack }) {
@@ -21,6 +21,7 @@ function QuestionChain({ navigate, goBack }) {
   const [feedbackLog, setFeedbackLog] = useState([]);
   const [fadeIn, setFadeIn] = useState(true);
   const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [hasQuestions, setHasQuestions] = useState(true);
   const [feedbackMethodMap, setFeedbackMethodMap] = useState(null);
 
   useEffect(() => {
@@ -28,7 +29,7 @@ function QuestionChain({ navigate, goBack }) {
     const questions = state?.questionChain || [];
 
     if (questions.length === 0) {
-      navigate('calibration');
+      setHasQuestions(false);
       return;
     }
 
@@ -43,8 +44,8 @@ function QuestionChain({ navigate, goBack }) {
 
     // 读取反馈方式约定
     const cal = state?.calibration;
-    if (cal?.feedbackMethodMap) {
-      setFeedbackMethodMap(cal.feedbackMethodMap);
+    if (cal?.signal && SIGNAL_RULES[cal.signal]) {
+      setFeedbackMethodMap(SIGNAL_RULES[cal.signal]);
     }
 
     const progress = state?.questionChainProgress;
@@ -60,8 +61,8 @@ function QuestionChain({ navigate, goBack }) {
 
   const getFeedbackLabel = useCallback(
     (key) => {
-      const map = feedbackMethodMap || DEFAULT_FEEDBACK_MAP;
-      return map[key] || DEFAULT_FEEDBACK_MAP[key];
+      const map = feedbackMethodMap || SIGNAL_RULES.blink;
+      return map[key] || SIGNAL_RULES.blink[key];
     },
     [feedbackMethodMap],
   );
@@ -260,8 +261,35 @@ function QuestionChain({ navigate, goBack }) {
   const showWeakHint = roundCount + 1 >= WEAK_RESPONSE_HINT_THRESHOLD;
   const hasCustomMap = !!feedbackMethodMap;
 
+  // 没有问题数据时的兜底界面
+  if (!hasQuestions) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)', minHeight: '70vh' }}>
+        <PageHeader title="问题链" onBack={goBack} />
+        <div className="brand-card" style={{ textAlign: 'center', padding: 'var(--space-xl) var(--space-md)' }}>
+          <p className="brand-body" style={{ marginBottom: 'var(--space-md)' }}>
+            暂没有问题链数据
+          </p>
+          <p className="brand-caption" style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)' }}>
+            请在"输入线索"页点击"使用示例体验"来加载演示数据，或返回上一页重新操作。
+          </p>
+          <button className="brand-btn-primary" onClick={() => navigate('calibration')} style={{ width: '100%' }}>
+            返回校准页
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentQuestion) {
-    return null;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)', minHeight: '70vh' }}>
+        <PageHeader title="问题链" onBack={goBack} />
+        <div className="brand-card" style={{ textAlign: 'center', padding: 'var(--space-xl) var(--space-md)' }}>
+          <p className="brand-caption" style={{ color: 'var(--text-secondary)' }}>加载中...</p>
+        </div>
+      </div>
+    );
   }
 
   const agreementText = `约定反馈：${getFeedbackLabel('yes')} 表示"是"，${getFeedbackLabel('no')} 表示"不是"；${getFeedbackLabel('unknown')} 记录为"我不知道"。`;
