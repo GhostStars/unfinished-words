@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getState, setState } from '../utils/storage.js';
+import { demoCase } from '../data/demoCase.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 const FEEDBACK_OPTIONS = [
@@ -95,6 +96,10 @@ function Calibration({ navigate, goBack }) {
   };
 
   const handleNextPage = () => {
+    const state = getState() || {};
+    if (!state.questionChain || state.questionChain.length === 0) {
+      setState({ ...state, questionChain: demoCase.questionChain });
+    }
     if (result === 'pass') {
       navigate('questionChain');
     } else {
