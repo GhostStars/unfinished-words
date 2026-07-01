@@ -57,7 +57,7 @@ function GuessRecord({ navigate }) {
   const getAnswerLabel = (answer) => {
     if (answer === 'yes') return '是';
     if (answer === 'no') return '不是';
-    if (answer === 'unknown') return '不知道';
+    if (answer === 'unknown') return '不确定';
     if (answer === 'pause') return '暂停';
     return answer;
   };

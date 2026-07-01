@@ -68,7 +68,7 @@ function ExpressionRecord({ navigate, goBack }) {
   const getAnswerLabel = (answer) => {
     if (answer === 'yes') return '是';
     if (answer === 'no') return '不是';
-    if (answer === 'unknown') return '不知道';
+    if (answer === 'unknown') return '不确定';
     if (answer === 'pause') return '暂停';
     return answer;
   };
@@ -259,7 +259,7 @@ function ExpressionRecord({ navigate, goBack }) {
               }}
             />
             <span className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
-              我不知道：{getFeedbackLabel('unknown')}
+              不确定：{getFeedbackLabel('unknown')}
             </span>
           </div>
         </div>

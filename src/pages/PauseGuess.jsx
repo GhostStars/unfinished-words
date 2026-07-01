@@ -28,6 +28,8 @@ function PauseGuess({ navigate }) {
   const progress = state?.questionChainProgress;
   const feedbackLog = progress?.feedbackLog || [];
   const calibration = state?.calibration;
+  const lifeClues = state?.lifeClues || [];
+  const candidates = state?.candidates || [];
 
   const signalKey = calibration?.signal;
   const feedbackMap = signalKey && SIGNAL_RULES[signalKey] ? SIGNAL_RULES[signalKey] : SIGNAL_RULES.blink;
@@ -38,7 +40,7 @@ function PauseGuess({ navigate }) {
   const getAnswerLabel = (answer) => {
     if (answer === 'yes') return '是';
     if (answer === 'no') return '不是';
-    if (answer === 'unknown') return '不知道';
+    if (answer === 'unknown') return '不确定';
     if (answer === 'pause') return '暂停';
     return answer;
   };
@@ -111,6 +113,75 @@ function PauseGuess({ navigate }) {
           <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>暂无线索</p>
         )}
       </div>
+
+      {/* 生命线索 */}
+      {lifeClues.length > 0 && (
+        <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+          <h3 className="brand-h3">生命线索</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+            {lifeClues.map((clue, idx) => (
+              <div
+                key={clue.id || idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-sm)',
+                  padding: 'var(--space-sm) var(--space-md)',
+                  background: 'rgba(255, 255, 255, 0.5)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              >
+                <span className="brand-small" style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                  {idx + 1}
+                </span>
+                <span className="brand-caption" style={{ flex: 1, color: 'var(--text-secondary)' }}>
+                  {clue.content}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 当前候选 */}
+      {candidates.length > 0 && (
+        <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+          <h3 className="brand-h3">当前候选</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+            {candidates.map((c, idx) => (
+              <div
+                key={c.id || idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-sm)',
+                  padding: 'var(--space-sm) var(--space-md)',
+                  background: 'rgba(255, 255, 255, 0.5)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              >
+                <span
+                  className="brand-small"
+                  style={{
+                    color: 'var(--text-tertiary)',
+                    flexShrink: 0,
+                    minWidth: '24px',
+                    textAlign: 'center',
+                  }}
+                >
+                  {idx + 1}
+                </span>
+                <span className="brand-caption" style={{ flex: 1, color: 'var(--text-secondary)' }}>
+                  {c.meaning}
+                </span>
+                <span className="brand-small" style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                  {Math.round((c.confidence || 0.5) * 100)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 已问过的问题和反馈 */}
       {feedbackLog.length > 0 && (

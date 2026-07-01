@@ -124,7 +124,7 @@ function QuestionChain({ navigate, goBack }) {
       return;
     }
 
-    // 处理"我不知道"计数
+    // 处理"不确定"计数
     let newConsecutiveUnknown = consecutiveUnknown;
     if (answer === 'unknown') {
       newConsecutiveUnknown = consecutiveUnknown + 1;
@@ -132,7 +132,7 @@ function QuestionChain({ navigate, goBack }) {
       newConsecutiveUnknown = 0;
     }
 
-    // 连续 3 次"我不知道" → 暂停
+    // 连续 3 次"不确定" → 暂停
     if (newConsecutiveUnknown >= MAX_CONSECUTIVE_UNKNOWN) {
       saveProgress({
         currentQuestionId,
@@ -183,7 +183,7 @@ function QuestionChain({ navigate, goBack }) {
       const confidence = candidate?.confidence || 0.5;
 
       let confidenceLevel = '中等';
-      if (yesCount / total >= 0.7 && confidence >= 0.6) {
+      if (nextId === 'expressionRecord') {
         confidenceLevel = '较高';
       } else if (yesCount / total >= 0.5 && confidence >= 0.4) {
         confidenceLevel = '中等';
@@ -193,8 +193,11 @@ function QuestionChain({ navigate, goBack }) {
         confidenceLevel = '不可靠';
       }
 
+      // 从复述确认的问题文本中提取引号内的表达
+      const textMatch = question.text.match(/的意思是["']([^"']+)["']/);
+      const extractedExpression = textMatch ? textMatch[1] : null;
       const expressionResult = {
-        expression: candidate?.meaning || '无法确定具体表达',
+        expression: extractedExpression || candidate?.meaning || '无法确定具体表达',
         candidateId: relatedCandidateId,
         confidenceLevel,
         confidence,
@@ -279,7 +282,7 @@ function QuestionChain({ navigate, goBack }) {
     );
   }
 
-  const agreementText = `约定反馈：${getFeedbackLabel('yes')} 表示"是"，${getFeedbackLabel('no')} 表示"不是"；${getFeedbackLabel('unknown')} 记录为"我不知道"。`;
+  const agreementText = `约定反馈：${getFeedbackLabel('yes')} 表示"是"，${getFeedbackLabel('no')} 表示"不是"；${getFeedbackLabel('unknown')} 记录为"不确定"。`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)', minHeight: '70vh' }}>
@@ -291,7 +294,7 @@ function QuestionChain({ navigate, goBack }) {
           第 {roundCount + 1} / {MAX_ROUNDS} 题
         </p>
         <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
-          {consecutiveUnknown > 0 ? `连续"不知道" ${consecutiveUnknown} 次` : ''}
+          {consecutiveUnknown > 0 ? `连续"不确定" ${consecutiveUnknown} 次` : ''}
         </p>
       </div>
 
@@ -462,7 +465,7 @@ function QuestionChain({ navigate, goBack }) {
           </span>
         </button>
 
-        {/* 我不知道 */}
+        {/* 我不确定 */}
         <button
           className="brand-btn-outline"
           onClick={() => handleFeedback('unknown')}
@@ -479,7 +482,7 @@ function QuestionChain({ navigate, goBack }) {
           }}
         >
           <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)' }}>
-            我不知道
+            我不确定
           </span>
           <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.75 }}>
             {getFeedbackLabel('unknown')}
@@ -578,7 +581,7 @@ function QuestionChain({ navigate, goBack }) {
                       ? '是'
                       : log.answer === 'no'
                         ? '不是'
-                        : '不知道'}
+                        : '不确定'}
                   </span>
                 </div>
               ))}

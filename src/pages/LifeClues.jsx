@@ -73,6 +73,8 @@ function LifeClues({ navigate, goBack, navigateData }) {
       setLifeClues(state.lifeClues);
     } else {
       setLifeClues(demoCase.lifeClues);
+      const s = getState() || {};
+      setState({ ...s, lifeClues: demoCase.lifeClues });
     }
   }, []);
 

@@ -48,7 +48,7 @@ function buildRecordText(session) {
   }
   lines.push('【理解路径】');
   record.feedbackLog.forEach((log, idx) => {
-    const answerLabel = log.answer === 'yes' ? '是' : log.answer === 'no' ? '不是' : '不知道';
+    const answerLabel = log.answer === 'yes' ? '是' : log.answer === 'no' ? '不是' : '不确定';
     lines.push(`${idx + 1}. ${log.questionText} → ${answerLabel}`);
   });
   lines.push('');
@@ -115,8 +115,7 @@ function History({ navigate, goBack }) {
       <PageHeader title="历史记录" onBack={goBack} />
 
       <div>
-        <h2 className="brand-h2">历史记录</h2>
-        <p className="brand-caption" style={{ marginTop: 'var(--space-xs)', color: 'var(--text-tertiary)' }}>
+        <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
           每一次尝试，都是靠近TA心意的一步
         </p>
       </div>

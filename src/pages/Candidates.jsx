@@ -40,11 +40,15 @@ function Candidates({ navigate }) {
       setCandidates(state.candidates);
     } else {
       setCandidates(demoCase.candidates);
+      const s = getState() || {};
+      setState({ ...s, candidates: demoCase.candidates });
     }
     if (state?.lifeClues && state.lifeClues.length > 0) {
       setLifeClues(state.lifeClues);
     } else {
       setLifeClues(demoCase.lifeClues);
+      const s = getState() || {};
+      setState({ ...s, lifeClues: demoCase.lifeClues });
     }
   }, []);
 
