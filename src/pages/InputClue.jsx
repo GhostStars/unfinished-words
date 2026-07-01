@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getState, setState } from '../utils/storage.js';
 import { demoCase } from '../data/demoCase.js';
+import handwritingBei from '../assets/handwriting-bei.jpg';
 
 const DESC_HINT = '举例：反复眨眼，右手微微抬起指向门口';
 
@@ -59,7 +60,8 @@ function InputClue({ navigate }) {
 
   const handleUseDemo = () => {
     setDescription(demoCase.inputClue.description);
-    setImage(null);
+    setKeyword('北，北京');
+    setImage(handwritingBei);
     setDescHint(false);
   };
 
