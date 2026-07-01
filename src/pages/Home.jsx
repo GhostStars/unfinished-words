@@ -15,6 +15,11 @@ function Home({ navigate }) {
     navigate('inputClue');
   };
 
+  const handleStartNewLifeClues = () => {
+    createSession();
+    navigate('lifeClues');
+  };
+
   return (
     <div
       style={{
@@ -160,13 +165,22 @@ function Home({ navigate }) {
         </button>
 
         {hasHistory && (
-          <button
-            className="brand-btn-outline"
-            onClick={() => navigate('history')}
-            style={{ width: '100%' }}
-          >
-            查看历史猜测
-          </button>
+          <div style={{ display: 'flex', gap: 'var(--space-sm)', width: '100%' }}>
+            <button
+              className="brand-btn-outline"
+              onClick={handleStartNewLifeClues}
+              style={{ flex: 1, minHeight: '48px' }}
+            >
+              生命线索
+            </button>
+            <button
+              className="brand-btn-outline"
+              onClick={() => navigate('history')}
+              style={{ flex: 1, minHeight: '48px' }}
+            >
+              查看历史
+            </button>
+          </div>
         )}
       </div>
 
