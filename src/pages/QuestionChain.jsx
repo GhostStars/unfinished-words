@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getState, setState } from '../utils/storage.js';
+import PageHeader from '../components/PageHeader.jsx';
 
 const MAX_ROUNDS = 8;
 const MAX_CONSECUTIVE_UNKNOWN = 3;
-const WEAK_RESPONSE_HINT_THRESHOLD = 5; // 第 5 题起显示提示
+const WEAK_RESPONSE_HINT_THRESHOLD = 5;
 
-function QuestionChain({ navigate }) {
+function QuestionChain({ navigate, goBack }) {
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [questionMap, setQuestionMap] = useState({});
   const [questionOrder, setQuestionOrder] = useState([]);
@@ -13,8 +14,8 @@ function QuestionChain({ navigate }) {
   const [consecutiveUnknown, setConsecutiveUnknown] = useState(0);
   const [feedbackLog, setFeedbackLog] = useState([]);
   const [fadeIn, setFadeIn] = useState(true);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
 
-  // 初始化：从 storage 读取问题链数据
   useEffect(() => {
     const state = getState();
     const questions = state?.questionChain || [];
@@ -24,7 +25,6 @@ function QuestionChain({ navigate }) {
       return;
     }
 
-    // 建立问题 ID → 问题对象 的映射
     const map = {};
     const order = [];
     questions.forEach((q) => {
@@ -34,7 +34,6 @@ function QuestionChain({ navigate }) {
     setQuestionMap(map);
     setQuestionOrder(order);
 
-    // 恢复之前的状态（如有）
     const progress = state?.questionChainProgress;
     if (progress) {
       setCurrentQuestionId(progress.currentQuestionId);
@@ -46,7 +45,6 @@ function QuestionChain({ navigate }) {
     }
   }, []);
 
-  // 保存进度到 storage
   const saveProgress = useCallback(
     (updates) => {
       const state = getState() || {};
@@ -59,7 +57,6 @@ function QuestionChain({ navigate }) {
     [],
   );
 
-  // 处理按钮点击
   const handleFeedback = (answer) => {
     if (!currentQuestionId) return;
 
@@ -72,7 +69,6 @@ function QuestionChain({ navigate }) {
       { questionId: currentQuestionId, questionText: question.text, answer, type: question.type },
     ];
 
-    // 点击"暂停猜测"
     if (answer === 'pause') {
       saveProgress({
         currentQuestionId,
@@ -84,7 +80,6 @@ function QuestionChain({ navigate }) {
       return;
     }
 
-    // 处理"我不知道"计数
     let newConsecutiveUnknown = consecutiveUnknown;
     if (answer === 'unknown') {
       newConsecutiveUnknown = consecutiveUnknown + 1;
@@ -92,7 +87,6 @@ function QuestionChain({ navigate }) {
       newConsecutiveUnknown = 0;
     }
 
-    // 连续 3 次"我不知道" → 暂停
     if (newConsecutiveUnknown >= MAX_CONSECUTIVE_UNKNOWN) {
       saveProgress({
         currentQuestionId,
@@ -104,7 +98,6 @@ function QuestionChain({ navigate }) {
       return;
     }
 
-    // 超过 8 轮 → 暂停
     if (newRound >= MAX_ROUNDS) {
       saveProgress({
         currentQuestionId,
@@ -116,7 +109,6 @@ function QuestionChain({ navigate }) {
       return;
     }
 
-    // 根据 onYes/onNo/onUnknown 跳转
     let nextId = null;
     if (answer === 'yes') {
       nextId = question.onYes;
@@ -126,14 +118,12 @@ function QuestionChain({ navigate }) {
       nextId = question.onUnknown;
     }
 
-    // 特殊跳转目标
     if (nextId === 'expressionRecord') {
       const state = getState() || {};
       const candidates = state?.candidates || [];
       const relatedCandidateId = question.relatedCandidate;
       const candidate = candidates.find((c) => c.id === relatedCandidateId);
 
-      // 计算置信等级
       const total = newLog.length;
       const yesCount = newLog.filter((f) => f.answer === 'yes').length;
       const unknownCount = newLog.filter((f) => f.answer === 'unknown').length;
@@ -185,7 +175,6 @@ function QuestionChain({ navigate }) {
       return;
     }
 
-    // 如果 nextId 为 null 或找不到对应问题，跳暂停
     if (!nextId || !questionMap[nextId]) {
       saveProgress({
         currentQuestionId,
@@ -197,7 +186,6 @@ function QuestionChain({ navigate }) {
       return;
     }
 
-    // 切换问题，加动画
     setFadeIn(false);
     setTimeout(() => {
       setCurrentQuestionId(nextId);
@@ -223,7 +211,8 @@ function QuestionChain({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)', minHeight: '70vh' }}>
-      {/* 进度指示 */}
+      <PageHeader title="问题链" onBack={goBack} />
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
           第 {roundCount + 1} / {MAX_ROUNDS} 题
@@ -235,7 +224,6 @@ function QuestionChain({ navigate }) {
         </p>
       </div>
 
-      {/* 进度条 */}
       <div
         style={{
           width: '100%',
@@ -256,7 +244,6 @@ function QuestionChain({ navigate }) {
         />
       </div>
 
-      {/* 提示：患者反应变弱 */}
       {showWeakHint && (
         <div
           className="brand-card"
@@ -273,7 +260,6 @@ function QuestionChain({ navigate }) {
         </div>
       )}
 
-      {/* 问题展示区：大字号居中 */}
       <div
         style={{
           flex: 1,
@@ -308,22 +294,15 @@ function QuestionChain({ navigate }) {
         </div>
       </div>
 
-      {/* 底部 4 个按钮 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-        {/* "是" 按钮 */}
         <button
           className="brand-btn-primary"
           onClick={() => handleFeedback('yes')}
-          style={{
-            width: '100%',
-            minHeight: '52px',
-            fontSize: 'var(--font-size-md)',
-          }}
+          style={{ width: '100%', minHeight: '52px', fontSize: 'var(--font-size-md)' }}
         >
           是
         </button>
 
-        {/* "不是" 按钮 */}
         <button
           className="brand-btn-outline"
           onClick={() => handleFeedback('no')}
@@ -338,7 +317,6 @@ function QuestionChain({ navigate }) {
           不是
         </button>
 
-        {/* "我不知道" 按钮 */}
         <button
           className="brand-btn-outline"
           onClick={() => handleFeedback('unknown')}
@@ -353,35 +331,54 @@ function QuestionChain({ navigate }) {
           我不知道
         </button>
 
-        {/* "暂停猜测" 按钮 */}
         <button
           className="brand-btn-outline"
           onClick={() => handleFeedback('pause')}
-          style={{
-            width: '100%',
-            minHeight: '48px',
-            fontSize: 'var(--font-size-sm)',
-          }}
+          style={{ width: '100%', minHeight: '48px', fontSize: 'var(--font-size-sm)' }}
         >
           暂停猜测
         </button>
       </div>
 
-      {/* 已回答历史记录（折叠展示） */}
       {feedbackLog.length > 0 && (
         <div style={{ marginTop: 'var(--space-sm)' }}>
-          <details>
-            <summary
-              className="brand-small"
+          <button
+            onClick={() => setHistoryExpanded(!historyExpanded)}
+            className="brand-small"
+            style={{
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-tertiary)',
+              textAlign: 'center',
+              cursor: 'pointer',
+              padding: 'var(--space-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+            }}
+          >
+            <span>已回答 {feedbackLog.length} 题</span>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               style={{
-                cursor: 'pointer',
-                color: 'var(--text-tertiary)',
-                textAlign: 'center',
-                userSelect: 'none',
+                transform: historyExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease',
               }}
             >
-              已回答 {feedbackLog.length} 题（点击展开）
-            </summary>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {historyExpanded && (
             <div
               style={{
                 marginTop: 'var(--space-sm)',
@@ -429,7 +426,7 @@ function QuestionChain({ navigate }) {
                 </div>
               ))}
             </div>
-          </details>
+          )}
         </div>
       )}
     </div>

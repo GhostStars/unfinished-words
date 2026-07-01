@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getState, clearState } from '../utils/storage.js';
+import PageHeader from '../components/PageHeader.jsx';
 
-function PauseGuess({ navigate }) {
+function PauseGuess({ navigate, goBack }) {
   const [hasRecord, setHasRecord] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,8 @@ function PauseGuess({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+      <PageHeader title="暂停猜测" onBack={goBack} />
+
       <div>
         <h2 className="brand-h2">先停一停</h2>
         <p

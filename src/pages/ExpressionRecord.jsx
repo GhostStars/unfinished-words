@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getState, setState } from '../utils/storage.js';
+import PageHeader from '../components/PageHeader.jsx';
 
-function ExpressionRecord({ navigate }) {
+function ExpressionRecord({ navigate, goBack }) {
   const [record, setRecord] = useState(null);
   const [inputClue, setInputClue] = useState(null);
   const [lifeClues, setLifeClues] = useState([]);
@@ -95,7 +96,6 @@ function ExpressionRecord({ navigate }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback
       const textarea = document.createElement('textarea');
       textarea.value = text;
       textarea.style.position = 'fixed';
@@ -110,7 +110,6 @@ function ExpressionRecord({ navigate }) {
   };
 
   const handleContinue = () => {
-    // 清除本轮表达结果，保留 inputClue / lifeClues 等基础数据
     const state = getState() || {};
     const next = { ...state };
     delete next.expressionResult;
@@ -129,6 +128,7 @@ function ExpressionRecord({ navigate }) {
   if (!record) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+        <PageHeader title="表达记录" onBack={goBack} />
         <h2 className="brand-h2">可能表达记录</h2>
         <div
           className="brand-card"
@@ -149,7 +149,8 @@ function ExpressionRecord({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      {/* 标题 */}
+      <PageHeader title="表达记录" onBack={goBack} />
+
       <div>
         <h2 className="brand-h2">可能表达记录</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)', color: 'var(--text-tertiary)' }}>
@@ -157,7 +158,6 @@ function ExpressionRecord({ navigate }) {
         </p>
       </div>
 
-      {/* 可能表达 */}
       <div
         className="brand-card"
         style={{
@@ -198,7 +198,6 @@ function ExpressionRecord({ navigate }) {
         </div>
       </div>
 
-      {/* 原始线索 */}
       <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
         <h3 className="brand-h3">原始线索</h3>
         {inputClue?.image && (
@@ -229,7 +228,6 @@ function ExpressionRecord({ navigate }) {
         )}
       </div>
 
-      {/* 生命线索 */}
       {lifeClues.length > 0 && (
         <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <h3 className="brand-h3">生命线索</h3>
@@ -252,7 +250,6 @@ function ExpressionRecord({ navigate }) {
         </div>
       )}
 
-      {/* 理解路径表格 */}
       <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
         <h3 className="brand-h3">理解路径</h3>
         {record.feedbackLog.length > 0 ? (
@@ -298,41 +295,26 @@ function ExpressionRecord({ navigate }) {
         )}
       </div>
 
-      {/* 边界说明 */}
-      <p
-        className="brand-small"
+      <div
+        className="brand-card"
         style={{
           textAlign: 'center',
-          color: 'var(--text-tertiary)',
-          padding: 'var(--space-sm) var(--space-md)',
           background: 'rgba(255, 255, 255, 0.5)',
-          borderRadius: 'var(--radius-md)',
         }}
       >
-        本记录基于观察与反馈推理，仅供参考，不构成医疗、法律或遗嘱效力
-      </p>
+        <p className="brand-small" style={{ color: 'var(--text-tertiary)' }}>
+          本记录基于观察与反馈推理，仅供参考，不构成医疗、法律或遗嘱效力
+        </p>
+      </div>
 
-      {/* 按钮区 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-        <button
-          className="brand-btn-primary"
-          onClick={handleCopy}
-          style={{ width: '100%' }}
-        >
+        <button className="brand-btn-primary" onClick={handleCopy} style={{ width: '100%' }}>
           {copied ? '已复制到剪贴板' : '复制记录'}
         </button>
-        <button
-          className="brand-btn-outline"
-          onClick={handleContinue}
-          style={{ width: '100%' }}
-        >
+        <button className="brand-btn-outline" onClick={handleContinue} style={{ width: '100%' }}>
           继续尝试
         </button>
-        <button
-          className="brand-btn-outline"
-          onClick={handleGoHome}
-          style={{ width: '100%' }}
-        >
+        <button className="brand-btn-outline" onClick={handleGoHome} style={{ width: '100%' }}>
           返回首页
         </button>
       </div>

@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react';
 import { getState } from '../utils/storage.js';
 import { demoCase } from '../data/demoCase.js';
+import PageHeader from '../components/PageHeader.jsx';
 
-function LifeClues({ navigate }) {
+const StarIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    style={{ color: 'var(--warning)', flexShrink: 0 }}
+  >
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
+
+function LifeClues({ navigate, goBack }) {
   const [lifeClues, setLifeClues] = useState([]);
 
   useEffect(() => {
@@ -16,6 +29,8 @@ function LifeClues({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+      <PageHeader title="生命线索" onBack={goBack} />
+
       <div>
         <h2 className="brand-h2">生命线索</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
@@ -30,29 +45,30 @@ function LifeClues({ navigate }) {
             className="brand-card"
             style={{
               display: 'flex',
-              flexDirection: 'column',
+              flexDirection: 'row',
+              alignItems: 'flex-start',
               gap: 'var(--space-sm)',
             }}
           >
-            <p className="brand-body" style={{ lineHeight: 'var(--line-height-relaxed)' }}>
+            <StarIcon />
+            <p className="brand-body" style={{ lineHeight: 'var(--line-height-relaxed)', flex: 1 }}>
               {clue.content}
             </p>
           </div>
         ))}
       </div>
 
-      <p
-        className="brand-small"
+      <div
+        className="brand-card"
         style={{
           textAlign: 'center',
-          color: 'var(--text-tertiary)',
-          padding: 'var(--space-sm) var(--space-md)',
           background: 'rgba(255, 255, 255, 0.5)',
-          borderRadius: 'var(--radius-md)',
         }}
       >
-        生命线索仅作为理解参考，最终以患者当下反馈为准
-      </p>
+        <p className="brand-small" style={{ color: 'var(--text-tertiary)' }}>
+          生命线索仅作为理解参考，最终以患者当下反馈为准
+        </p>
+      </div>
 
       <button
         className="brand-btn-primary"

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getState, setState } from '../utils/storage.js';
+import PageHeader from '../components/PageHeader.jsx';
 
 const FEEDBACK_OPTIONS = [
   {
@@ -22,10 +23,10 @@ const CALIBRATION_QUESTIONS = [
   { id: 3, text: '我们现在在医院，对吗？', expected: 'yes' },
 ];
 
-function Calibration({ navigate }) {
+function Calibration({ navigate, goBack }) {
   const [feedbackMethod, setFeedbackMethod] = useState('');
   const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(null); // 'pass' | 'fail' | null
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     const state = getState();
@@ -61,7 +62,6 @@ function Calibration({ navigate }) {
     setAnswers(next);
     saveCalibrationState({ answers: next, result: null });
 
-    // Check if all 3 questions are answered
     if (Object.keys(next).length === 3) {
       evaluateResult(next);
     }
@@ -81,7 +81,6 @@ function Calibration({ navigate }) {
       }
     });
 
-    // Pass: at least 2 valid answers AND at least 2 match expected
     const passed = validCount >= 2 && matchCount >= 2;
     const outcome = passed ? 'pass' : 'fail';
 
@@ -107,7 +106,8 @@ function Calibration({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      {/* Header */}
+      <PageHeader title="信号校准" onBack={goBack} />
+
       <div>
         <h2 className="brand-h2">确认患者的反馈方式</h2>
         <p className="brand-caption" style={{ marginTop: 'var(--space-xs)' }}>
@@ -115,7 +115,6 @@ function Calibration({ navigate }) {
         </p>
       </div>
 
-      {/* Feedback Method Selector */}
       <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
         <label className="brand-caption" style={{ fontWeight: 'var(--font-weight-medium)' }}>
           反馈方式
@@ -135,11 +134,6 @@ function Calibration({ navigate }) {
             color: feedbackMethod ? 'var(--text-primary)' : 'var(--text-tertiary)',
             appearance: 'none',
             WebkitAppearance: 'none',
-            backgroundImage: feedbackMethod
-              ? 'none'
-              : `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%239A9A9A' stroke-width='1.5'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 12px center',
           }}
         >
           <option value="" disabled>
@@ -153,7 +147,6 @@ function Calibration({ navigate }) {
         </select>
       </div>
 
-      {/* Calibration Questions */}
       {feedbackMethod && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <p className="brand-caption" style={{ color: 'var(--text-secondary)' }}>
@@ -163,7 +156,6 @@ function Calibration({ navigate }) {
           {CALIBRATION_QUESTIONS.map((q, index) => {
             const answered = answers[q.id];
             const isActive = result === null;
-            const isDisabled = !isActive;
 
             return (
               <div
@@ -173,7 +165,7 @@ function Calibration({ navigate }) {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 'var(--space-md)',
-                  opacity: isDisabled ? 0.8 : 1,
+                  opacity: isActive ? 1 : 0.8,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-sm)' }}>
@@ -215,7 +207,7 @@ function Calibration({ navigate }) {
                     <button
                       key={btn.key}
                       onClick={() => handleAnswer(q.id, btn.key)}
-                      disabled={isDisabled}
+                      disabled={!isActive}
                       style={{
                         flex: 1,
                         minHeight: '48px',
@@ -228,7 +220,7 @@ function Calibration({ navigate }) {
                         fontFamily: 'inherit',
                         fontSize: 'var(--font-size-sm)',
                         fontWeight: 'var(--font-weight-medium)',
-                        cursor: isDisabled ? 'default' : 'pointer',
+                        cursor: isActive ? 'pointer' : 'default',
                         transition: 'all var(--transition-fast)',
                       }}
                     >
@@ -242,7 +234,6 @@ function Calibration({ navigate }) {
         </div>
       )}
 
-      {/* Result Banner */}
       {result === 'pass' && (
         <div
           className="brand-card"
@@ -273,7 +264,6 @@ function Calibration({ navigate }) {
         </div>
       )}
 
-      {/* Action Buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
         {result && (
           <>
@@ -295,19 +285,13 @@ function Calibration({ navigate }) {
         )}
 
         {!result && allAnswered && feedbackMethod && (
-          <div
-            className="brand-small"
-            style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}
-          >
+          <div className="brand-small" style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
             正在评估校准结果...
           </div>
         )}
 
         {!result && !allAnswered && feedbackMethod && (
-          <p
-            className="brand-small"
-            style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}
-          >
+          <p className="brand-small" style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
             请回答全部 3 个问题后查看结果
           </p>
         )}

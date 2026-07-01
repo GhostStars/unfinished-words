@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getState, clearState } from '../utils/storage.js';
+import PageHeader from '../components/PageHeader.jsx';
 
-function GuessRecord({ navigate }) {
+function GuessRecord({ navigate, goBack }) {
   const [state, setState] = useState(null);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ function GuessRecord({ navigate }) {
   if (!state) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+        <PageHeader title="猜测记录" onBack={goBack} />
         <h2 className="brand-h2">当前猜测记录</h2>
         <p className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
           暂无记录
@@ -58,11 +60,12 @@ function GuessRecord({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+      <PageHeader title="猜测记录" onBack={goBack} />
+
       <div>
         <h2 className="brand-h2">当前猜测记录</h2>
       </div>
 
-      {/* 当前状态标签 */}
       <div
         className="brand-card"
         style={{
@@ -79,7 +82,6 @@ function GuessRecord({ navigate }) {
         </p>
       </div>
 
-      {/* 已输入线索 */}
       <div
         className="brand-card"
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}
@@ -114,7 +116,6 @@ function GuessRecord({ navigate }) {
         )}
       </div>
 
-      {/* 当前保留候选 */}
       <div
         className="brand-card"
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}
@@ -156,7 +157,6 @@ function GuessRecord({ navigate }) {
         )}
       </div>
 
-      {/* 已问过的问题表格 */}
       <div
         className="brand-card"
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}
@@ -212,7 +212,6 @@ function GuessRecord({ navigate }) {
         )}
       </div>
 
-      {/* 底部按钮 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
         <button
           className="brand-btn-outline"
