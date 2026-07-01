@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getState, clearState } from '../utils/storage.js';
+import { getState, archiveCurrentSession } from '../utils/storage.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 function GuessRecord({ navigate, goBack }) {
@@ -15,7 +15,7 @@ function GuessRecord({ navigate, goBack }) {
   };
 
   const handleEndAndSave = () => {
-    clearState();
+    archiveCurrentSession('paused');
     navigate('home');
   };
 

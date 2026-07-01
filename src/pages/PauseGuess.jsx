@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getState, clearState } from '../utils/storage.js';
+import { getState, archiveCurrentSession } from '../utils/storage.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 function PauseGuess({ navigate, goBack }) {
@@ -25,7 +25,7 @@ function PauseGuess({ navigate, goBack }) {
   };
 
   const handleEndAttempt = () => {
-    clearState();
+    archiveCurrentSession('paused');
     navigate('home');
   };
 

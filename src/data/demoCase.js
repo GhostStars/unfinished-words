@@ -4,9 +4,10 @@ export const demoCase = {
     context: '探访时间临近结束，患者看到家属准备离开',
   },
   lifeClues: [
-    { id: 1, content: '每天下午三点会准时看向窗外' },
-    { id: 2, content: '听到老歌《送别》时会眼眶湿润' },
-    { id: 3, content: '提到孙女名字时会握紧拳头' },
+    { id: 1, content: '患者年轻时曾在北京生活多年。', type: '重要的地方', certainty: '较确定' },
+    { id: 2, content: '患者最牵挂的弟弟目前住在北京。', type: '重要的人', certainty: '较确定' },
+    { id: 3, content: '患者最近几天多次看向窗外。', type: '家属观察到的动作/表情', certainty: '只是观察' },
+    { id: 4, content: '家属备注：患者曾多次提起"北京那边"。', type: '最近反复提到的事', certainty: '不太确定' },
   ],
   candidates: [
     { id: 1, meaning: '想再看看窗外的梧桐树', confidence: 0.7 },

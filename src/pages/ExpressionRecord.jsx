@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getState, setState } from '../utils/storage.js';
+import { getState, setState, archiveCurrentSession, createSession } from '../utils/storage.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 function ExpressionRecord({ navigate, goBack }) {
@@ -110,14 +110,8 @@ function ExpressionRecord({ navigate, goBack }) {
   };
 
   const handleContinue = () => {
-    const state = getState() || {};
-    const next = { ...state };
-    delete next.expressionResult;
-    delete next.questionChainProgress;
-    delete next.questionChain;
-    delete next.calibration;
-    delete next.candidates;
-    setState(next);
+    archiveCurrentSession('completed');
+    createSession();
     navigate('inputClue');
   };
 

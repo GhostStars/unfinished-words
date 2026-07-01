@@ -1,6 +1,20 @@
+import { useState, useEffect } from 'react';
 import heroImg from '../assets/hero-illustration.jpg';
+import { getSessions, createSession } from '../utils/storage.js';
 
 function Home({ navigate }) {
+  const [hasHistory, setHasHistory] = useState(false);
+
+  useEffect(() => {
+    const sessions = getSessions();
+    setHasHistory(sessions.length > 0);
+  }, []);
+
+  const handleStartNew = () => {
+    createSession();
+    navigate('inputClue');
+  };
+
   return (
     <div
       style={{
@@ -128,9 +142,19 @@ function Home({ navigate }) {
           gap: 'var(--space-md)',
         }}
       >
+        {hasHistory && (
+          <button
+            className="brand-btn-outline"
+            onClick={() => navigate('history')}
+            style={{ width: '100%' }}
+          >
+            查看历史猜测
+          </button>
+        )}
+
         <button
           className="brand-btn-primary"
-          onClick={() => navigate('inputClue')}
+          onClick={handleStartNew}
           style={{ width: '100%' }}
         >
           <span>开始一次表达尝试</span>

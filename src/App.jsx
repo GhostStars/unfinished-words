@@ -8,6 +8,7 @@ import QuestionChain from './pages/QuestionChain.jsx';
 import PauseGuess from './pages/PauseGuess.jsx';
 import GuessRecord from './pages/GuessRecord.jsx';
 import ExpressionRecord from './pages/ExpressionRecord.jsx';
+import History from './pages/History.jsx';
 
 const PAGE_TITLES = {
   inputClue: '输入线索',
@@ -18,6 +19,7 @@ const PAGE_TITLES = {
   pauseGuess: '暂停猜测',
   guessRecord: '猜测记录',
   expressionRecord: '表达记录',
+  history: '猜测历史',
 };
 
 function App() {
@@ -72,6 +74,9 @@ function App() {
       break;
     case 'expressionRecord':
       pageComponent = <ExpressionRecord {...pageProps} />;
+      break;
+    case 'history':
+      pageComponent = <History {...pageProps} />;
       break;
     default:
       pageComponent = <Home navigate={navigate} />;
