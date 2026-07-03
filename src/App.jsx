@@ -29,17 +29,22 @@ function App() {
 
   // 禁用全局下拉刷新（iOS Safari 橡皮筋效果）
   useEffect(() => {
-    const preventPullToRefresh = (e) => {
-      if (e.touches.length > 1) return;
+    let startY = 0;
+    const handleTouchStart = (e) => {
+      startY = e.touches[0].clientY;
+    };
+    const handleTouchMove = (e) => {
       const touch = e.touches[0];
-      // 只有在页面顶部向下拖动时才阻止
-      if (touch.clientY > 0 && window.scrollY <= 0) {
+      // 只有在页面顶部且向下拖动时才阻止
+      if (window.scrollY <= 0 && touch.clientY > startY) {
         e.preventDefault();
       }
     };
-    document.addEventListener('touchmove', preventPullToRefresh, { passive: false });
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     return () => {
-      document.removeEventListener('touchmove', preventPullToRefresh);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
     };
   }, []);
 
