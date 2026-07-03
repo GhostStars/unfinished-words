@@ -74,7 +74,7 @@ function Candidates({ navigate, goBack }) {
     if (!meaning || meaning.trim() === '') return;
     const next = [
       ...candidates,
-      { id: Date.now(), meaning: meaning.trim(), confidence: 0.5 },
+      { id: Date.now(), meaning: meaning.trim(), confidence: 0.5, source: 'user' },
     ];
     persistCandidates(next);
   };
@@ -138,7 +138,7 @@ function Candidates({ navigate, goBack }) {
               >
                 <span>{c.meaning}</span>
                 <span className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
-                  依据来自：亲属猜测
+                  {c.source === 'user' ? '依据来自：亲属猜测' : '依据来自：线索推测'}
                 </span>
               </span>
 
