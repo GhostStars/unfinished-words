@@ -115,7 +115,7 @@ function History({ navigate, goBack }) {
     e.stopPropagation();
     if (!window.confirm('确定要删除这条记录吗？')) return;
     deleteSession(id);
-    setSessions(getSessions());
+    setSessions([...getSessions()]);
   };
 
   return (
