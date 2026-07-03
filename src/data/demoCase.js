@@ -1,6 +1,6 @@
 export const demoCase = {
   inputClue: {
-    description: '患者已完全无法说话，手指在床单上艰难涂画，字迹歪歪扭扭，家属仔细辨认后，觉得像是"北"字',
+    description: '患者已完全无法说话，手指在笔记本上艰难涂画，字迹歪歪扭扭，家属仔细辨认后，觉得像是"北"字',
     context: '家属正在整理患者年轻时在北京生活的老照片',
   },
   lifeClues: [
