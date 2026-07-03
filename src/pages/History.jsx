@@ -3,8 +3,9 @@ import { getSessions, deleteSession, setCurrentSessionId, getState, setState } f
 import PageHeader from '../components/PageHeader.jsx';
 
 const statusConfig = {
-  completed: { label: '已完成', color: 'var(--success)', bg: 'var(--success-bg)' },
-  paused: { label: '暂停中', color: 'var(--warning)', bg: 'var(--warning-bg)' },
+  completed: { label: '已完成-有猜测结果', color: 'var(--success)', bg: 'var(--success-bg)' },
+  completed_insufficient: { label: '已完成-线索不足', color: 'var(--error)', bg: 'rgba(200, 100, 100, 0.12)' },
+  paused: { label: '已暂停', color: 'var(--warning)', bg: 'var(--warning-bg)' },
 };
 
 const PAUSE_REASON_MAP = {
@@ -143,9 +144,10 @@ function History({ navigate, goBack }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           {sessions.map((session) => {
-            const isCompleted = session.status === 'completed';
-            const displayStatus = isCompleted ? 'completed' : 'paused';
+            const rawStatus = session.status || 'paused';
+            const displayStatus = statusConfig[rawStatus] ? rawStatus : 'paused';
             const status = statusConfig[displayStatus];
+            const isCompleted = displayStatus === 'completed';
             const data = session.data || {};
             const inputClue = data.inputClue;
             const progress = data.questionChainProgress;

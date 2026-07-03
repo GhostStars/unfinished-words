@@ -22,7 +22,8 @@ function PauseGuess({ navigate, goBack }) {
   useEffect(() => {
     const s = getState();
     setState(s);
-    archiveCurrentSession('paused');
+    const hasProgress = s?.questionChainProgress?.feedbackLog?.length > 0;
+    archiveCurrentSession(hasProgress ? 'completed_insufficient' : 'paused');
   }, []);
 
   const inputClue = state?.inputClue;
