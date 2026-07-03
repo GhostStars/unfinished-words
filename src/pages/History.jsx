@@ -96,15 +96,20 @@ function History({ navigate, goBack }) {
 
   const handleResume = (session) => {
     setCurrentSessionId(session.id);
-    const state = getState() || {};
-    setState({
-      ...state,
-      calibration: {},
-      questionChainProgress: {},
-      questionChain: [],
-      expressionResult: undefined,
-    });
-    navigate('calibration');
+    const data = session.data || {};
+    const resumePage =
+      data.questionChainProgress?.feedbackLog?.length > 0
+        ? 'questionChain'
+        : data.calibration?.signal
+          ? 'calibration'
+          : data.candidates?.length > 0
+            ? 'candidates'
+            : data.lifeClues?.length > 0
+              ? 'lifeClues'
+              : data.inputClue
+                ? 'inputClue'
+                : 'home';
+    navigate(resumePage);
   };
 
   const handleViewDetail = (session) => {
