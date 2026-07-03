@@ -102,11 +102,6 @@ function History({ navigate, goBack }) {
   const handleResume = (session) => {
     setCurrentSessionId(session.id);
     const data = session.data || {};
-    // 已完成-线索不足：重新从校准开始
-    if (session.status === 'completed_insufficient') {
-      navigate('calibration');
-      return;
-    }
     // 已暂停：回到中断位置
     const resumePage =
       data.questionChainProgress?.feedbackLog?.length > 0
@@ -163,7 +158,7 @@ function History({ navigate, goBack }) {
             const rawStatus = session.status || 'paused';
             const displayStatus = statusConfig[rawStatus] ? rawStatus : 'paused';
             const status = statusConfig[displayStatus];
-            const isCompleted = displayStatus === 'completed';
+            const isCompleted = displayStatus === 'completed' || displayStatus === 'completed_insufficient';
             const data = session.data || {};
             const inputClue = data.inputClue;
             const progress = data.questionChainProgress;
