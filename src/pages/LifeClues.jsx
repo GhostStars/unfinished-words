@@ -289,6 +289,11 @@ function LifeClues({ navigate, goBack, navigateData }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
       <PageHeader title="生命线索" onBack={goBack} />
 
+      {/* Intro */}
+      <p className="brand-body" style={{ lineHeight: 'var(--line-height-relaxed)' }}>
+        生命线索是患者一生留下的痕迹——最挂念的人、最熟悉的地方、反复提起的心愿、近期的身体变化。它们不会替患者说话，但能帮我们在猜测时，离患者的心意更近一些。
+      </p>
+
       {/* Subtitle */}
       <p className="brand-caption" style={{ marginBottom: 'var(--space-xs)' }}>
         以下是本次样例中的生命线索，你可以修改、删除或补充，让它更接近真实情况。
