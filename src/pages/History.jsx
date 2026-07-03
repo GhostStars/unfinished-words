@@ -68,7 +68,12 @@ function History({ navigate, goBack }) {
 
   const handleViewRecord = (session) => {
     setCurrentSessionId(session.id);
-    navigate('expressionRecord', { from: 'history' });
+    const isCompleted = session.status === 'completed';
+    if (isCompleted) {
+      navigate('expressionRecord');
+    } else {
+      navigate('guessRecord');
+    }
   };
 
   const handleCopyRecord = async (session) => {
@@ -242,41 +247,20 @@ function History({ navigate, goBack }) {
 
                 {/* 操作按钮 */}
                 <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-xs)' }}>
-                  {isCompleted ? (
-                    <>
-                      <button
-                        className="brand-btn-outline"
-                        onClick={() => handleViewRecord(session)}
-                        style={{ flex: 1, minHeight: '40px', fontSize: 'var(--font-size-sm)' }}
-                      >
-                        查看记录
-                      </button>
-                      <button
-                        className="brand-btn-primary"
-                        onClick={() => handleCopyRecord(session)}
-                        style={{ flex: 1, minHeight: '40px', fontSize: 'var(--font-size-sm)' }}
-                      >
-                        复制记录
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="brand-btn-primary"
-                        onClick={() => handleResume(session)}
-                        style={{ flex: 1, minHeight: '40px', fontSize: 'var(--font-size-sm)' }}
-                      >
-                        继续尝试
-                      </button>
-                      <button
-                        className="brand-btn-outline"
-                        onClick={() => handleViewDetail(session)}
-                        style={{ flex: 1, minHeight: '40px', fontSize: 'var(--font-size-sm)' }}
-                      >
-                        查看详情
-                      </button>
-                    </>
-                  )}
+                  <button
+                    className="brand-btn-outline"
+                    onClick={() => handleViewRecord(session)}
+                    style={{ flex: 1, minHeight: '40px', fontSize: 'var(--font-size-sm)' }}
+                  >
+                    查看记录
+                  </button>
+                  <button
+                    className="brand-btn-primary"
+                    onClick={() => handleCopyRecord(session)}
+                    style={{ flex: 1, minHeight: '40px', fontSize: 'var(--font-size-sm)' }}
+                  >
+                    复制记录
+                  </button>
                 </div>
 
                 {/* 删除 */}
