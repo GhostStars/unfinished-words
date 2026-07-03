@@ -216,7 +216,7 @@ function History({ navigate, goBack }) {
                 )}
 
                 {/* 暂停原因（仅 paused） */}
-                {!isCompleted && pauseReasonText && (
+                {displayStatus === 'paused' && pauseReasonText && (
                   <p className="brand-caption" style={{ color: 'var(--warning)' }}>
                     暂停原因：{pauseReasonText}
                   </p>
