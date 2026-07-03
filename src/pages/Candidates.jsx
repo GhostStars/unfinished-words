@@ -138,7 +138,7 @@ function Candidates({ navigate, goBack }) {
               >
                 <span>{c.meaning}</span>
                 <span className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
-                  依据来自：模糊字迹 + 生命线索「{lifeClues[(c.id - 1) % lifeClues.length]?.content?.slice(0, 20) || '…'}」
+                  依据：亲属猜测
                 </span>
               </span>
 
