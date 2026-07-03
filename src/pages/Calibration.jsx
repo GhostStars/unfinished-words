@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getState, setState, archiveCurrentSession } from '../utils/storage.js';
+import PageHeader from '../components/PageHeader.jsx';
 
 const SIGNALS = [
   {
@@ -25,7 +26,7 @@ const QUESTIONS = [
   '我们现在在医院，对吗？',
 ];
 
-function Calibration({ navigate }) {
+function Calibration({ navigate, goBack }) {
   const [signal, setSignal] = useState('blink');
 
   useEffect(() => {
@@ -79,6 +80,7 @@ function Calibration({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+      <PageHeader title="信号校准" onBack={goBack} />
       {/* 标题 */}
       <div>
         <h2 className="brand-h2">确认本次反馈约定</h2>

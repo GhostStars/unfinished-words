@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Home from './pages/Home.jsx';
 import InputClue from './pages/InputClue.jsx';
 import LifeClues from './pages/LifeClues.jsx';
@@ -26,6 +26,22 @@ function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [history, setHistory] = useState([]);
   const [navigateData, setNavigateData] = useState({});
+
+  // 禁用全局下拉刷新（iOS Safari 橡皮筋效果）
+  useEffect(() => {
+    const preventPullToRefresh = (e) => {
+      if (e.touches.length > 1) return;
+      const touch = e.touches[0];
+      // 只有在页面顶部向下拖动时才阻止
+      if (touch.clientY > 0 && window.scrollY <= 0) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('touchmove', preventPullToRefresh, { passive: false });
+    return () => {
+      document.removeEventListener('touchmove', preventPullToRefresh);
+    };
+  }, []);
 
   const navigate = useCallback((page, data = {}) => {
     setNavigateData(data);
