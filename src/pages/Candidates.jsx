@@ -138,7 +138,7 @@ function Candidates({ navigate, goBack }) {
               >
                 <span>{c.meaning}</span>
                 <span className="brand-caption" style={{ color: 'var(--text-tertiary)' }}>
-                  依据：亲属猜测
+                  依据来自：亲属猜测
                 </span>
               </span>
 
