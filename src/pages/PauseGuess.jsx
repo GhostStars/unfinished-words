@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getState, archiveCurrentSession } from '../utils/storage.js';
+import { getState, archiveCurrentSession, getCurrentSession } from '../utils/storage.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 const SIGNAL_RULES = {
@@ -18,12 +18,19 @@ const PAUSE_REASON_MAP = {
 
 function PauseGuess({ navigate, goBack }) {
   const [state, setState] = useState(null);
+  const [pageStatus, setPageStatus] = useState('paused');
 
   useEffect(() => {
     const s = getState();
     setState(s);
+    const session = getCurrentSession();
+    const currentStatus = session?.status;
     const hasProgress = s?.questionChainProgress?.feedbackLog?.length > 0;
-    archiveCurrentSession(hasProgress ? 'completed_insufficient' : 'paused');
+    const newStatus = hasProgress ? 'completed_insufficient' : 'paused';
+    if (currentStatus !== newStatus) {
+      archiveCurrentSession(newStatus);
+    }
+    setPageStatus(newStatus);
   }, []);
 
   const inputClue = state?.inputClue;
@@ -53,11 +60,13 @@ function PauseGuess({ navigate, goBack }) {
     return 'var(--warning)';
   };
 
+  const isInsufficient = pageStatus === 'completed_insufficient';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      <PageHeader title="暂停猜测" onBack={goBack} />
+      <PageHeader title={isInsufficient ? '线索不足' : '暂停猜测'} onBack={goBack} />
       <div>
-        <h2 className="brand-h2">本次尝试已暂停</h2>
+        <h2 className="brand-h2">{isInsufficient ? '本次尝试已结束' : '本次尝试已暂停'}</h2>
         <p
           className="brand-body"
           style={{
@@ -66,26 +75,30 @@ function PauseGuess({ navigate, goBack }) {
             color: 'var(--text-secondary)',
           }}
         >
-          当前反馈不足以继续判断。线索、图片、问题和反馈已保留，可稍后从历史记录中重新校准并继续。
+          {isInsufficient
+            ? '当前线索不足以形成明确的猜测结果。已记录的问题和反馈可供参考，可稍后从历史记录中重新开始。'
+            : '当前反馈不足以继续判断。线索、图片、问题和反馈已保留，可稍后从历史记录中重新校准并继续。'}
         </p>
       </div>
 
-      {/* 暂停原因 */}
-      <div
-        className="brand-card"
-        style={{
-          background: 'var(--warning-bg)',
-          border: '1px solid var(--warning)',
-          textAlign: 'center',
-        }}
-      >
-        <p
-          className="brand-caption"
-          style={{ color: 'var(--warning)', fontWeight: 'var(--font-weight-medium)' }}
+      {/* 暂停原因（仅 paused 状态显示） */}
+      {!isInsufficient && (
+        <div
+          className="brand-card"
+          style={{
+            background: 'var(--warning-bg)',
+            border: '1px solid var(--warning)',
+            textAlign: 'center',
+          }}
         >
-          暂停原因：{pauseReasonText}
-        </p>
-      </div>
+          <p
+            className="brand-caption"
+            style={{ color: 'var(--warning)', fontWeight: 'var(--font-weight-medium)' }}
+          >
+            暂停原因：{pauseReasonText}
+          </p>
+        </div>
+      )}
 
       {/* 原始线索 */}
       <div className="brand-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>

@@ -181,6 +181,13 @@ export function getSessionById(id) {
   return state.sessions.find((s) => s.id === id) || null;
 }
 
+export function getCurrentSession() {
+  const raw = getRawState();
+  if (!raw) return null;
+  const state = migrateOldData(raw);
+  return state.sessions.find((s) => s.id === state.currentSessionId) || null;
+}
+
 export function deleteSession(id) {
   const raw = getRawState();
   if (!raw) return;
