@@ -26,12 +26,24 @@ const QUESTIONS = [
 ];
 
 function Calibration({ navigate }) {
-  const [signal, setSignal] = useState('');
+  const [signal, setSignal] = useState('blink');
 
   useEffect(() => {
     const state = getState();
     if (state?.calibration?.signal) {
       setSignal(state.calibration.signal);
+    } else {
+      // 默认选中眨眼并保存到 storage
+      const selected = SIGNALS.find((s) => s.key === 'blink');
+      const newState = getState() || {};
+      setState({
+        ...newState,
+        calibration: {
+          ...(newState.calibration || {}),
+          signal: 'blink',
+          feedbackMethodMap: selected?.rules || null,
+        },
+      });
     }
   }, []);
 
