@@ -1,18 +1,18 @@
 export const demoCase = {
   inputClue: {
-    description: '患者用手指在床单上缓慢写了一个"北"字，写完眼神看向家属',
-    context: '家属正在整理患者年轻时在北京的老照片',
+    description: '患者已完全无法说话，手指在床单上艰难涂画，字迹歪歪扭扭，家属仔细辨认后，觉得像是某个字',
+    context: '家属正在整理患者年轻时在北边生活的老照片',
   },
   lifeClues: [
-    { id: 1, content: '患者年轻时曾在北京生活多年', type: '重要的地方', certainty: '较确定' },
-    { id: 2, content: '患者最牵挂的弟弟目前住在北京', type: '重要的人', certainty: '较确定' },
-    { id: 3, content: '患者床头一直放着一张北京的老照片', type: '家属观察到的动作/表情', certainty: '较确定' },
-    { id: 4, content: '家属备注：患者曾多次提起"北京那边"', type: '最近反复提到的事', certainty: '不太确定' },
+    { id: 1, content: '患者年轻时曾在北边生活多年', type: '重要的地方', certainty: '较确定' },
+    { id: 2, content: '患者最牵挂的弟弟目前住在北边', type: '重要的人', certainty: '较确定' },
+    { id: 3, content: '患者床头一直放着一张北边的老照片', type: '家属观察到的动作/表情', certainty: '较确定' },
+    { id: 4, content: '家属备注：患者曾多次提起"北边那边"', type: '最近反复提到的事', certainty: '不太确定' },
   ],
   candidates: [
-    { id: 1, meaning: '可能和北京有关', confidence: 0.7 },
-    { id: 2, meaning: '可能和住在北京的弟弟有关', confidence: 0.85 },
-    { id: 3, meaning: '可能只是想表达和某个地方有关', confidence: 0.5 },
+    { id: 1, meaning: '北', confidence: 0.7 },
+    { id: 2, meaning: '北', confidence: 0.85 },
+    { id: 3, meaning: '北', confidence: 0.5 },
   ],
   calibration: {
     signal: 'blink',
@@ -81,7 +81,7 @@ export const demoCase = {
     },
     {
       id: 'q7',
-      text: '综合前面的回答，患者可能想表达"想念住在北京的弟弟"，这个猜测合理吗？',
+      text: '综合前面的回答，患者可能想表达"想念住在北边的弟弟"，这个猜测合理吗？',
       expectedAnswer: '是',
       onYes: 'q8',
       onNo: 'pauseGuess',
@@ -91,7 +91,7 @@ export const demoCase = {
     },
     {
       id: 'q8',
-      text: '复述确认：患者想表达的意思是"想念住在北京的弟弟"，您确认吗？',
+      text: '复述确认：患者想表达的意思是"想念住在北边的弟弟"，您确认吗？',
       expectedAnswer: '是',
       onYes: 'expressionRecord',
       onNo: 'pauseGuess',
