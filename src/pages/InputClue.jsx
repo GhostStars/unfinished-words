@@ -302,8 +302,6 @@ function InputClue({ navigate }) {
             id="desc-input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            onFocus={handleDescFocus}
-            onBlur={handleDescBlur}
             rows={4}
             style={{
               width: '100%',
@@ -323,6 +321,7 @@ function InputClue({ navigate }) {
             }}
             onFocus={(e) => {
               e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06), 0 0 0 2px rgba(184,149,106,0.25)';
+              handleDescFocus();
             }}
             onBlur={(e) => {
               e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
