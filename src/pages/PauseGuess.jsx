@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getState, archiveCurrentSession } from '../utils/storage.js';
+import PageHeader from '../components/PageHeader.jsx';
 
 const SIGNAL_RULES = {
   blink: { yes: '眨眼一次', no: '眨眼两次', unknown: '无明显反应' },
@@ -15,7 +16,7 @@ const PAUSE_REASON_MAP = {
   calibration_unclear: '校准阶段反馈不够清楚',
 };
 
-function PauseGuess({ navigate }) {
+function PauseGuess({ navigate, goBack }) {
   const [state, setState] = useState(null);
 
   useEffect(() => {
@@ -53,6 +54,7 @@ function PauseGuess({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+      <PageHeader title="暂停猜测" onBack={goBack} />
       <div>
         <h2 className="brand-h2">本次尝试已暂停</h2>
         <p
