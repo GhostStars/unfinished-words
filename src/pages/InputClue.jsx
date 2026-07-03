@@ -9,25 +9,14 @@ function InputClue({ navigate }) {
   const [keyword, setKeyword] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
-  const [descHint, setDescHint] = useState(true);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     const state = getState();
     if (state?.inputClue) {
-      const k = state.inputClue.keyword || '';
-      const d = state.inputClue.description || '';
-      const isDemoDesc = d === demoCase.inputClue.description;
-      const hasDesc = !isDemoDesc && d.trim().length > 0;
-      setKeyword(k);
-      setDescription(hasDesc ? d : DESC_HINT);
+      setKeyword(state.inputClue.keyword || '');
+      setDescription(state.inputClue.description || '');
       setImage(state.inputClue.image || null);
-      setDescHint(!hasDesc);
-    } else {
-      setKeyword('');
-      setDescription(DESC_HINT);
-      setImage(null);
-      setDescHint(true);
     }
   }, []);
 
@@ -51,7 +40,7 @@ function InputClue({ navigate }) {
       ...state,
       inputClue: {
         keyword: keyword.trim(),
-        description: descHint ? '' : description,
+        description: description.trim(),
         image,
       },
     });
@@ -62,25 +51,18 @@ function InputClue({ navigate }) {
     setDescription(demoCase.inputClue.description);
     setKeyword('北');
     setImage(handwritingBei);
-    setDescHint(false);
-  };
-
-  const clearIfHint = () => {
-    if (description === DESC_HINT) {
-      setDescription('');
-      setDescHint(false);
-    }
-  };
-
-  const restoreIfEmpty = () => {
-    if (!description.trim()) {
-      setDescription(DESC_HINT);
-      setDescHint(true);
-    }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', minHeight: '100dvh' }}>
+      {/* Placeholder color for textarea */}
+      <style>{`
+        #desc-input::placeholder {
+          color: var(--text-tertiary);
+          opacity: 1;
+        }
+      `}</style>
+
       {/* Top Navigation */}
       <div
         style={{
@@ -302,6 +284,7 @@ function InputClue({ navigate }) {
             id="desc-input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            placeholder={DESC_HINT}
             rows={4}
             style={{
               width: '100%',
@@ -309,7 +292,7 @@ function InputClue({ navigate }) {
               padding: '12px 16px',
               fontSize: '16px',
               fontFamily: 'inherit',
-              color: descHint ? 'var(--text-tertiary)' : 'var(--text-primary)',
+              color: 'var(--text-primary)',
               background: 'var(--card-bg-solid, #FAFAF7)',
               border: 'none',
               borderRadius: '12px',
@@ -321,11 +304,9 @@ function InputClue({ navigate }) {
             }}
             onFocus={(e) => {
               e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06), 0 0 0 2px rgba(184,149,106,0.25)';
-              clearIfHint();
             }}
             onBlur={(e) => {
               e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
-              restoreIfEmpty();
             }}
           />
         </div>
