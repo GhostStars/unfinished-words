@@ -60,7 +60,7 @@ function InputClue({ navigate }) {
 
   const handleUseDemo = () => {
     setDescription(demoCase.inputClue.description);
-    setKeyword('北，北京');
+    setKeyword('北');
     setImage(handwritingBei);
     setDescHint(false);
   };
@@ -259,7 +259,7 @@ function InputClue({ navigate }) {
             type="text"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="举例：北，北京"
+            placeholder="举例：北"
             autoComplete="off"
             style={{
               width: '100%',
