@@ -65,14 +65,14 @@ function InputClue({ navigate }) {
     setDescHint(false);
   };
 
-  const handleDescFocus = () => {
-    if (descHint) {
+  const clearIfHint = () => {
+    if (description === DESC_HINT) {
       setDescription('');
       setDescHint(false);
     }
   };
 
-  const handleDescBlur = () => {
+  const restoreIfEmpty = () => {
     if (!description.trim()) {
       setDescription(DESC_HINT);
       setDescHint(true);
@@ -321,11 +321,11 @@ function InputClue({ navigate }) {
             }}
             onFocus={(e) => {
               e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06), 0 0 0 2px rgba(184,149,106,0.25)';
-              handleDescFocus();
+              clearIfHint();
             }}
             onBlur={(e) => {
               e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
-              handleDescBlur();
+              restoreIfEmpty();
             }}
           />
         </div>
