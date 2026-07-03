@@ -119,7 +119,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: reason,
       });
-      archiveCurrentSession('paused');
+      archiveCurrentSession('completed_insufficient');
       navigate('pauseGuess');
       return;
     }
@@ -141,7 +141,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: 'consecutive_unknown',
       });
-      archiveCurrentSession('paused');
+      archiveCurrentSession('completed_insufficient');
       navigate('pauseGuess');
       return;
     }
@@ -155,7 +155,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: 'max_rounds',
       });
-      archiveCurrentSession('paused');
+      archiveCurrentSession('completed_insufficient');
       navigate('pauseGuess');
       return;
     }
@@ -230,7 +230,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: reason,
       });
-      archiveCurrentSession('paused');
+      archiveCurrentSession('completed_insufficient');
       navigate('pauseGuess');
       return;
     }
@@ -245,7 +245,7 @@ function QuestionChain({ navigate, goBack }) {
         feedbackLog: newLog,
         pauseReason: reason,
       });
-      archiveCurrentSession('paused');
+      archiveCurrentSession('completed_insufficient');
       navigate('pauseGuess');
       return;
     }

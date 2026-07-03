@@ -23,13 +23,9 @@ function PauseGuess({ navigate, goBack }) {
   useEffect(() => {
     const s = getState();
     setState(s);
-    const session = getCurrentSession();
-    const currentStatus = session?.status;
     const hasProgress = s?.questionChainProgress?.feedbackLog?.length > 0;
     const newStatus = hasProgress ? 'completed_insufficient' : 'paused';
-    if (currentStatus !== newStatus) {
-      archiveCurrentSession(newStatus);
-    }
+    archiveCurrentSession(newStatus);
     setPageStatus(newStatus);
   }, []);
 
