@@ -68,7 +68,7 @@ function History({ navigate, goBack }) {
 
   const handleViewRecord = (session) => {
     setCurrentSessionId(session.id);
-    navigate('expressionRecord');
+    navigate('expressionRecord', { from: 'history' });
   };
 
   const handleCopyRecord = async (session) => {

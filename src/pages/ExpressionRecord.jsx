@@ -8,7 +8,7 @@ const DEFAULT_FEEDBACK_MAP = {
   unknown: '无明显反应',
 };
 
-function ExpressionRecord({ navigate }) {
+function ExpressionRecord({ navigate, goBack, navigateData }) {
   const [record, setRecord] = useState(null);
   const [inputClue, setInputClue] = useState(null);
   const [lifeClues, setLifeClues] = useState([]);
@@ -140,7 +140,7 @@ function ExpressionRecord({ navigate }) {
   if (!record) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-        <PageHeader title="表达记录" onBack={() => navigate('home')} />
+        <PageHeader title="表达记录" onBack={navigateData?.from === 'history' ? goBack : () => navigate('home')} />
       <h2 className="brand-h2">可能表达记录</h2>
         <div
           className="brand-card"
@@ -161,7 +161,7 @@ function ExpressionRecord({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      <PageHeader title="表达记录" onBack={() => navigate('home')} />
+      <PageHeader title="表达记录" onBack={navigateData?.from === 'history' ? goBack : () => navigate('home')} />
 
       <div>
         <h2 className="brand-h2">本次尝试已完成</h2>
