@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Home from './pages/Home.jsx';
 import InputClue from './pages/InputClue.jsx';
 import LifeClues from './pages/LifeClues.jsx';
@@ -27,6 +27,12 @@ function App() {
   const [history, setHistory] = useState([]);
   const [navigateData, setNavigateData] = useState({});
 
+  // 使用 ref 跟踪最新值，避免闭包问题
+  const currentPageRef = useRef(currentPage);
+  currentPageRef.current = currentPage;
+  const historyRef = useRef(history);
+  historyRef.current = history;
+
   // 禁用全局下拉刷新（iOS Safari 橡皮筋效果）
   useEffect(() => {
     let startY = 0;
@@ -50,21 +56,20 @@ function App() {
 
   const navigate = useCallback((page, data = {}) => {
     setNavigateData(data);
-    setHistory((prev) => [...prev, currentPage]);
+    setHistory((prev) => [...prev, currentPageRef.current]);
     setCurrentPage(page);
-  }, [currentPage]);
+  }, []);
 
   const goBack = useCallback(() => {
-    setHistory((prev) => {
-      if (prev.length === 0) {
-        setCurrentPage('home');
-        return [];
-      }
-      const newHistory = [...prev];
-      const previousPage = newHistory.pop();
-      setCurrentPage(previousPage);
-      return newHistory;
-    });
+    const prev = historyRef.current;
+    if (prev.length === 0) {
+      setCurrentPage('home');
+      return;
+    }
+    const newHistory = [...prev];
+    const previousPage = newHistory.pop();
+    setCurrentPage(previousPage);
+    setHistory(newHistory);
   }, []);
 
   const pageProps = { navigate, goBack, pageTitle: PAGE_TITLES[currentPage], navigateData };

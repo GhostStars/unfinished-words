@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getState, setState } from '../utils/storage.js';
 import { demoCase } from '../data/demoCase.js';
-
-/* Inline SVG icons matching the design spec */
-const IconChevronLeft = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="15 18 9 12 15 6" />
-  </svg>
-);
+import PageHeader from '../components/PageHeader.jsx';
 
 const IconPlus = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -30,7 +24,7 @@ const IconChevronRight = () => (
   </svg>
 );
 
-function Candidates({ navigate }) {
+function Candidates({ navigate, goBack }) {
   const [candidates, setCandidates] = useState([]);
   const [lifeClues, setLifeClues] = useState([]);
 
@@ -87,53 +81,7 @@ function Candidates({ navigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-      {/* ===== Top Navigation ===== */}
-      <nav
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          padding: '8px 0 16px',
-          minHeight: '44px',
-        }}
-      >
-        <button
-          onClick={() => navigate('lifeClues')}
-          aria-label="返回上一页"
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '36px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 'var(--radius-full)',
-            color: 'var(--text-secondary)',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'color var(--transition-fast), background var(--transition-fast)',
-          }}
-        >
-          <IconChevronLeft />
-        </button>
-        <span
-          className="brand-h3"
-          style={{
-            textAlign: 'center',
-            padding: '0 44px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          可能含义
-        </span>
-      </nav>
+      <PageHeader title="可能含义" onBack={goBack} />
 
       {/* ===== Page Content ===== */}
       <div>

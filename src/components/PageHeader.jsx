@@ -1,18 +1,13 @@
 function PageHeader({ title, onBack }) {
   return (
-    <div
+    <nav
       style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        height: '48px',
-        marginBottom: 'var(--space-md)',
-        background: 'rgba(245, 240, 232, 0.85)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        position: 'relative',
+        padding: '8px 0 16px',
+        minHeight: '44px',
       }}
     >
       <button
@@ -24,12 +19,13 @@ function PageHeader({ title, onBack }) {
           transform: 'translateY(-50%)',
           background: 'transparent',
           border: 'none',
-          padding: '8px',
+          color: 'var(--text-secondary)',
           cursor: 'pointer',
+          padding: '4px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--text-secondary)',
+          zIndex: 2,
         }}
         aria-label="返回"
       >
@@ -48,17 +44,17 @@ function PageHeader({ title, onBack }) {
       </button>
 
       <h1
-        className="brand-h2"
         style={{
-          fontSize: 'var(--font-size-md)',
-          fontWeight: 'var(--font-weight-semibold)',
+          fontSize: '18px',
+          fontWeight: 600,
           color: 'var(--text-primary)',
           margin: 0,
+          lineHeight: 1.2,
         }}
       >
         {title}
       </h1>
-    </div>
+    </nav>
   );
 }
 
