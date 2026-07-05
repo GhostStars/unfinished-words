@@ -55,12 +55,14 @@ function App() {
   }, []);
 
   const navigate = useCallback((page, data = {}) => {
+    window.scrollTo(0, 0);
     setNavigateData(data);
     setHistory((prev) => [...prev, currentPageRef.current]);
     setCurrentPage(page);
   }, []);
 
   const goBack = useCallback(() => {
+    window.scrollTo(0, 0);
     const prev = historyRef.current;
     if (prev.length === 0) {
       setCurrentPage('home');
