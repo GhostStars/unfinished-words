@@ -35,6 +35,8 @@ function App() {
 
   // 页面切换时滚动到顶部
   useEffect(() => {
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
     window.scrollTo(0, 0);
   }, [currentPage]);
 
@@ -46,8 +48,10 @@ function App() {
     };
     const handleTouchMove = (e) => {
       const touch = e.touches[0];
+      const root = document.getElementById('root');
+      const scrollTop = root ? root.scrollTop : window.scrollY;
       // 只有在页面顶部且向下拖动时才阻止
-      if (window.scrollY <= 0 && touch.clientY > startY) {
+      if (scrollTop <= 0 && touch.clientY > startY) {
         e.preventDefault();
       }
     };
