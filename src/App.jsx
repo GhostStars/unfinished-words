@@ -33,6 +33,11 @@ function App() {
   const historyRef = useRef(history);
   historyRef.current = history;
 
+  // 页面切换时滚动到顶部
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   // 禁用全局下拉刷新（iOS Safari 橡皮筋效果）
   useEffect(() => {
     let startY = 0;
@@ -55,14 +60,12 @@ function App() {
   }, []);
 
   const navigate = useCallback((page, data = {}) => {
-    window.scrollTo(0, 0);
     setNavigateData(data);
     setHistory((prev) => [...prev, currentPageRef.current]);
     setCurrentPage(page);
   }, []);
 
   const goBack = useCallback(() => {
-    window.scrollTo(0, 0);
     const prev = historyRef.current;
     if (prev.length === 0) {
       setCurrentPage('home');
